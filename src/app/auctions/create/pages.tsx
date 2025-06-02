@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,6 +20,8 @@ import {
     Clock, Calendar, MapPin, DollarSign,
     Info, Lightbulb, Save, Eye, AlertCircle
 } from 'lucide-react'
+import { AIPricingSuggestion } from '@/components/pricing/AIPricingSuggestion'
+import { formatCurrency } from '@/lib/utils'
 
 // Mock user data
 const useAuth = () => ({
@@ -31,12 +33,7 @@ const useAuth = () => ({
     }
 })
 
-const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ja-JP', {
-        style: 'currency',
-        currency: 'JPY'
-    }).format(amount)
-}
+// formatCurrencyはlib/utils.tsから使用
 
 interface FormData {
     title: string
@@ -46,6 +43,9 @@ interface FormData {
     delivery_method: string
     starting_price: number
     reserve_price: string
+    ai_suggested_reserve?: number
+    ai_confidence_score?: number
+    ai_reasoning?: string
     starts_at: string
     ends_at: string
 }
@@ -64,6 +64,9 @@ export default function CreateAuctionPage() {
         delivery_method: '',
         starting_price: 5000,
         reserve_price: '',
+        ai_suggested_reserve: undefined,
+        ai_confidence_score: undefined,
+        ai_reasoning: undefined,
         starts_at: '',
         ends_at: ''
     })
@@ -103,9 +106,24 @@ export default function CreateAuctionPage() {
         setIsLoading(true)
 
         try {
-            // TODO: API呼び出し
+            // オークション作成API呼び出し
             await new Promise(resolve => setTimeout(resolve, 2000))
-
+            
+            // 実際のAPIエンドポイントが実装されたら以下のようなコードになります
+            // const response = await fetch('/api/auctions', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     body: JSON.stringify(formData),
+            // });
+            // 
+            // if (!response.ok) {
+            //     throw new Error('オークションの作成に失敗しました');
+            // }
+            // 
+            // const data = await response.json();
+            
             console.log('オークション作成:', formData)
             alert('オークションを作成しました！')
 
@@ -333,6 +351,29 @@ export default function CreateAuctionPage() {
                                             </p>
                                         </div>
                                     </div>
+
+                                    {/* AI価格提案コンポーネント */}
+                                    {formData.title && formData.starting_price > 0 && (
+                                        <div className="mt-4">
+                                            <AIPricingSuggestion 
+                                                auctionData={{
+                                                    title: formData.title,
+                                                    description: formData.description,
+                                                    startingPrice: formData.starting_price,
+                                                    service_type: formData.service_type,
+                                                    delivery_method: formData.delivery_method,
+                                                    duration_minutes: formData.duration_minutes,
+                                                    expert: {
+                                                        id: '1',
+                                                        display_name: '田中太郎'
+                                                    }
+                                                }}
+                                                onAcceptSuggestion={(reservePrice) => {
+                                                    handleInputChange('reserve_price', reservePrice.toString());
+                                                }}
+                                            />
+                                        </div>
+                                    )}
 
                                     <Alert>
                                         <Lightbulb className="h-4 w-4" />
