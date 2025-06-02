@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -8,115 +7,91 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import {
     Clock, Users, Calendar, MapPin, Star, Shield,
-    TrendingUp, MessageCircle, ExternalLink, ChevronRight
+    TrendingUp, MessageCircle, ExternalLink, ChevronRight,
+    Loader2
 } from 'lucide-react'
 import { BidForm } from './bid-form'
+import { useRealtimeAuction } from '@/hooks/use-realtime-auction'
+import { useAuth } from '@/hooks/use-auth'
+import { useEffect, useState } from 'react'
+import { getTimeRemaining, formatCurrency, formatDateTime } from '@/lib/utils'
 
-// Mock data (後でAPI/propsに置換)
-const mockAuction = {
-    id: '1',
-    title: 'Web開発におけるReact最適化コンサルティング',
-    description: `
-現在のReactアプリケーションのパフォーマンス問題を診断し、具体的な改善策をご提案します。
-
-【対象となる方】
-• Reactアプリの読み込みが遅くて困っている
-• バンドルサイズが大きすぎる 
-• レンダリングが重い箇所がある
-• Next.jsへの移行を検討している
-
-【提供内容】
-1. 現状分析（20分）
-2. 問題点の特定と原因解説（15分）
-3. 具体的な改善案の提示（20分）
-4. 質疑応答（5分）
-
-【必要な準備】
-• GitHubリポジトリのアクセス権限
-• 現在の課題をまとめた資料
-
-実際の開発現場で培った知見をもとに、実践的なアドバイスをいたします。
-  `,
-    current_highest_bid: 8500,
-    starting_price: 5000,
-    bid_count: 12,
+// フォールバック用のモックデータ（データ取得前に表示するため）
+const fallbackAuction = {
+    id: '',
+    title: 'オークション情報を読み込み中...',
+    description: 'データを取得しています...',
+    current_highest_bid: 0,
+    starting_price: 0,
+    bid_count: 0,
     status: 'active',
-    ends_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2時間後
+    ends_at: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
     duration_minutes: 60,
     service_type: 'consultation',
     delivery_method: 'online',
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date().toISOString(),
     expert: {
-        id: 'expert1',
-        display_name: '田中 太郎',
-        avatar_url: '/avatars/expert1.jpg',
-        bio: 'フロントエンド開発歴8年。React/Next.js専門。大手IT企業でのパフォーマンス改善経験多数。',
-        verification_status: 'verified',
-        expertise_areas: ['React', 'Next.js', 'Performance', 'Frontend'],
-        total_sessions: 145,
-        average_rating: 4.8,
-        response_rate: 98
+        id: '',
+        display_name: '読み込み中...',
+        avatar_url: '',
+        bio: '',
+        verification_status: 'pending',
+        expertise_areas: [],
+        total_sessions: 0,
+        average_rating: 0,
+        response_rate: 0
     }
 }
 
-// Mock bids data
-const mockBids = [
-    { id: '1', bidder_name: '山田*太', amount: 8500, created_at: '2025-06-01T10:30:00Z' },
-    { id: '2', bidder_name: '佐藤*子', amount: 7000, created_at: '2025-06-01T10:25:00Z' },
-    { id: '3', bidder_name: '鈴木*郎', amount: 6500, created_at: '2025-06-01T10:20:00Z' },
-    { id: '4', bidder_name: '田中*美', amount: 5500, created_at: '2025-06-01T10:15:00Z' },
-]
+// utils.tsからフォーマット関数をインポートしたので、ここでの定義は不要
 
-const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ja-JP', {
-        style: 'currency',
-        currency: 'JPY'
-    }).format(amount)
-}
-
-const formatDateTime = (dateString: string) => {
-    return new Intl.DateTimeFormat('ja-JP', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    }).format(new Date(dateString))
-}
-
-const getTimeRemaining = (endTime: string) => {
-    const end = new Date(endTime).getTime()
-    const now = new Date().getTime()
-    const timeLeft = end - now
-
-    if (timeLeft <= 0) {
-        return { hours: 0, minutes: 0, seconds: 0, total: 0 }
-    }
-
-    const hours = Math.floor(timeLeft / (1000 * 60 * 60))
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000)
-
-    return { hours, minutes, seconds, total: timeLeft }
-}
-
-export function AuctionDetail() {
-    const [auction] = useState(mockAuction)
-    const [bids] = useState(mockBids)
-    const [timeLeft, setTimeLeft] = useState(getTimeRemaining(auction.ends_at))
+export function AuctionDetail({ auctionId }: { auctionId: string }) {
+    const { user } = useAuth()
+    const { auction, bids, isLoading, error, placeBid } = useRealtimeAuction(auctionId)
+    const [timeLeft, setTimeLeft] = useState(getTimeRemaining(auction?.ends_at ?? fallbackAuction.ends_at))
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setTimeLeft(getTimeRemaining(auction.ends_at))
+            setTimeLeft(getTimeRemaining(auction?.ends_at ?? fallbackAuction.ends_at))
         }, 1000)
 
         return () => clearInterval(timer)
-    }, [auction.ends_at])
+    }, [auction?.ends_at])
 
-    const isActive = auction.status === 'active' && timeLeft.total > 0
+    // データが読み込まれるまではフォールバックを使用
+    const currentAuction = auction || fallbackAuction
+    const isActive = currentAuction.status === 'active' && timeLeft.total > 0
+
+    // エラー表示
+    if (error && !isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <CardTitle className="text-red-600">エラーが発生しました</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p>{error}</p>
+                        <Button className="mt-4" onClick={() => window.location.reload()}>
+                            再読み込み
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+                {isLoading && (
+                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-50">
+                        <div className="flex flex-col items-center">
+                            <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+                            <p className="mt-2 text-gray-600">オークション情報を読み込み中...</p>
+                        </div>
+                    </div>
+                )}
                 {/* Breadcrumb */}
                 <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
                     <a href="/auctions" className="hover:text-blue-600">オークション一覧</a>
@@ -163,20 +138,20 @@ export function AuctionDetail() {
                                     <div>
                                         <div className="text-sm text-muted-foreground">現在価格</div>
                                         <div className="text-2xl font-bold text-blue-600">
-                                            {formatCurrency(auction.current_highest_bid)}
+                                            {formatCurrency(currentAuction.current_highest_bid)}
                                         </div>
                                         <div className="flex items-center text-sm text-green-600">
                                             <TrendingUp className="w-4 h-4 mr-1" />
-                                            開始価格から +{formatCurrency(auction.current_highest_bid - auction.starting_price)}
+                                            開始価格から +{formatCurrency(currentAuction.current_highest_bid - currentAuction.starting_price)}
                                         </div>
                                     </div>
                                     <div className="text-right">
                                         <div className="flex items-center text-lg font-semibold">
                                             <Users className="w-5 h-5 mr-2" />
-                                            {auction.bid_count} 入札
+                                            {currentAuction.bid_count} 入札
                                         </div>
                                         <div className="text-sm text-muted-foreground">
-                                            開始価格: {formatCurrency(auction.starting_price)}
+                                            開始価格: {formatCurrency(currentAuction.starting_price)}
                                         </div>
                                     </div>
                                 </div>
@@ -191,7 +166,7 @@ export function AuctionDetail() {
                             <CardContent className="space-y-4">
                                 <div className="prose prose-sm max-w-none">
                                     <div className="whitespace-pre-line text-gray-700 leading-relaxed">
-                                        {auction.description}
+                                        {currentAuction.description}
                                     </div>
                                 </div>
 
@@ -200,11 +175,11 @@ export function AuctionDetail() {
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-4 h-4 text-muted-foreground" />
-                                        <span>セッション時間: {auction.duration_minutes}分</span>
+                                        <span>セッション時間: {currentAuction.duration_minutes}分</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-muted-foreground" />
-                                        <span>開始: {formatDateTime(auction.created_at)}</span>
+                                        <span>開始: {formatDateTime(currentAuction.created_at)}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <MapPin className="w-4 h-4 text-muted-foreground" />
@@ -226,16 +201,16 @@ export function AuctionDetail() {
                             <CardContent>
                                 <div className="flex items-start space-x-4">
                                     <Avatar className="w-16 h-16">
-                                        <AvatarImage src={auction.expert.avatar_url} alt={auction.expert.display_name} />
+                                        <AvatarImage src={currentAuction.expert?.avatar_url} alt={currentAuction.expert?.display_name} />
                                         <AvatarFallback className="bg-blue-600 text-white text-lg">
-                                            {auction.expert.display_name.charAt(0)}
+                                            {currentAuction.expert?.display_name.charAt(0) || '?'}
                                         </AvatarFallback>
                                     </Avatar>
 
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <h3 className="text-lg font-semibold">{auction.expert.display_name}</h3>
-                                            {auction.expert.verification_status === 'verified' && (
+                                            <h3 className="text-lg font-semibold">{currentAuction.expert?.display_name}</h3>
+                                            {currentAuction.expert?.verification_status === 'verified' && (
                                                 <div className="flex items-center gap-1">
                                                     <Shield className="w-4 h-4 text-blue-600" />
                                                     <span className="text-xs text-blue-600 font-medium">認証済み</span>
@@ -243,19 +218,19 @@ export function AuctionDetail() {
                                             )}
                                         </div>
 
-                                        <p className="text-gray-600 mb-3">{auction.expert.bio}</p>
+                                        <p className="text-gray-600 mb-3">{currentAuction.expert?.bio}</p>
 
                                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                                             <div className="flex items-center gap-1">
                                                 <Star className="w-4 h-4 text-yellow-500" />
-                                                <span>{auction.expert.average_rating} (145件)</span>
+                                                <span>{currentAuction.expert?.average_rating} ({currentAuction.expert?.total_sessions || 0}件)</span>
                                             </div>
-                                            <div>{auction.expert.total_sessions}回のセッション実績</div>
-                                            <div>回答率 {auction.expert.response_rate}%</div>
+                                            <div>{currentAuction.expert?.total_sessions || 0}回のセッション実績</div>
+                                            <div>回答率 {currentAuction.expert?.response_rate || 0}%</div>
                                         </div>
 
                                         <div className="flex flex-wrap gap-2">
-                                            {auction.expert.expertise_areas.map((area) => (
+                                            {currentAuction.expert?.expertise_areas?.map((area) => (
                                                 <Badge key={area} variant="secondary" className="text-xs">
                                                     {area}
                                                 </Badge>
@@ -280,7 +255,7 @@ export function AuctionDetail() {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-3">
-                                    {bids.map((bid, index) => (
+                                    {bids && bids.length > 0 ? bids.map((bid, index) => (
                                         <div key={bid.id} className="flex items-center justify-between py-2">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
@@ -299,7 +274,11 @@ export function AuctionDetail() {
                                                 </div>
                                             </div>
                                         </div>
-                                    ))}
+                                    )) : (
+                                        <div className="py-8 text-center text-gray-500">
+                                            まだ入札がありません。最初の入札者になりましょう！
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -308,7 +287,10 @@ export function AuctionDetail() {
                     {/* サイドバー - 入札フォーム */}
                     <div className="lg:col-span-1">
                         <div className="sticky top-24">
-                            <BidForm auction={auction} />
+                            <BidForm 
+                                auction={currentAuction} 
+                                onPlaceBid={user ? (amount: number) => placeBid(amount, user.id) : undefined} 
+                            />
                         </div>
                     </div>
                 </div>
