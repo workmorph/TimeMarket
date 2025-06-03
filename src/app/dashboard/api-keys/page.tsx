@@ -3,16 +3,15 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Key, Trash2, AlertTriangle, Clipboard, Clock, ExternalLink, Copy, Check } from 'lucide-react'
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AlertOctagon, AlertTriangle, Check, Clock, Copy, ExternalLink, Key, Trash2, Clipboard } from "lucide-react"
 import { ApiKey } from '@/models/ApiKey'
 
 export default function ApiKeysPage() {
@@ -177,7 +176,7 @@ export default function ApiKeysPage() {
   
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center gap-3 mb-8">
         <div>
           <h1 className="text-3xl font-bold">APIキー管理</h1>
           <p className="text-gray-500 mt-1">ウィジェット埋め込み用のAPIキーを管理します</p>
@@ -208,63 +207,90 @@ export default function ApiKeysPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="key-name" className="font-medium">APIキー名 (必須)</Label>
+              <CardContent className="space-y-6 p-4 sm:p-6">
+                <div className="space-y-3">
+                  <Label htmlFor="key-name" className="text-sm font-semibold text-gray-700 flex items-center">
+                    <div className="h-1.5 w-1.5 bg-blue-600 rounded-full mr-2"></div>
+                    APIキー名 (必須)
+                  </Label>
                   <Input
                     id="key-name"
                     placeholder="例: 会社ウェブサイト用"
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
-                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md py-2 px-3 shadow-sm"
                   />
+                  <p className="text-xs text-gray-500 pl-4">
+                    このAPIキーの用途を記述してください。例: 会社ウェブサイト用、テスト環境用など
+                  </p>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="allowed-origins" className="font-medium">許可するオリジン (オプション)</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="allowed-origins" className="text-sm font-semibold text-gray-700 flex items-center">
+                    <div className="h-1.5 w-1.5 bg-blue-600 rounded-full mr-2"></div>
+                    許可するオリジン (オプション)
+                  </Label>
                   <Input
                     id="allowed-origins"
                     placeholder="例: https://example.com, https://sub.example.com"
                     value={newKeyOrigins}
                     onChange={(e) => setNewKeyOrigins(e.target.value)}
-                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md py-2 px-3 shadow-sm"
                   />
-                  <div className="flex items-start mt-2">
-                    <AlertTriangle className="h-4 w-4 text-amber-500 mr-2 mt-0.5" />
-                    <p className="text-xs text-muted-foreground">
-                      カンマ区切りで複数指定できます。空白の場合はすべてのオリジンからのアクセスを許可します。
-                    </p>
+                  <div className="flex items-start p-2 sm:p-3 sm:pl-4 bg-amber-50 rounded-md border border-amber-100">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1">
+                      <p className="text-xs text-amber-700">
+                        カンマ区切りで複数指定できます。空白の場合はすべてのオリジンからのアクセスを許可します。
+                      </p>
+                      <p className="text-xs text-amber-700">
+                        セキュリティ上の理由から、本番環境では必ずオリジンを指定することを推奨します。
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button 
-                  onClick={handleCreateApiKey} 
-                  disabled={isCreatingKey || !newKeyName.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {isCreatingKey ? (
-                    <>
-                      <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent rounded-full"></div>
-                      作成中...
-                    </>
-                  ) : (
-                    <>
-                      <Key className="mr-2 h-4 w-4" />
-                      APIキーを作成
-                    </>
-                  )}
-                </Button>
+              <CardFooter className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div className="w-full flex flex-col sm:flex-row sm:justify-between gap-4 items-center">
+                  <p className="text-xs sm:text-sm text-gray-500 flex items-center text-center sm:text-left">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 mr-2" />
+                    作成したAPIキーは一度だけ表示されます
+                  </p>
+                  <Button 
+                    onClick={handleCreateApiKey} 
+                    disabled={isCreatingKey || !newKeyName.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 h-auto font-medium shadow-sm transition-all duration-200 w-full sm:w-auto"
+                  >
+                    {isCreatingKey ? (
+                      <>
+                        <div className="animate-spin mr-2 h-5 w-5 border-2 border-b-transparent rounded-full"></div>
+                        作成中...
+                      </>
+                    ) : (
+                      <>
+                        <Key className="mr-2 h-5 w-5" />
+                        APIキーを作成
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
             
             {/* エラーメッセージ */}
             {error && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>エラー</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <div className="bg-red-50 border-l-4 border-red-500 border-t border-r border-b border-red-100 text-red-700 p-3 sm:p-4 rounded-md mx-4 sm:mx-6 my-3 text-sm shadow-sm">
+                <div className="flex items-start">
+                  <AlertOctagon className="h-5 w-5 mr-3 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold mb-1">エラーが発生しました</h4>
+                    <p>{error}</p>
+                    <p className="text-xs text-red-600 mt-2">
+                      問題が解決しない場合は、サポートにお問い合わせください。
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
             
             {/* APIキーリスト */}
@@ -301,63 +327,75 @@ export default function ApiKeysPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {apiKeys.map((key) => (
-                      <div key={key.id} className="p-5 bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow transition-shadow duration-300">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-start gap-3">
-                            <div className={`p-2 rounded-full ${key.is_active ? 'bg-green-50' : 'bg-gray-100'}`}>
-                              <Key className={`h-4 w-4 ${key.is_active ? 'text-green-600' : 'text-gray-400'}`} />
-                            </div>
-                            <div>
-                              <div className="font-medium text-lg">{key.name}</div>
-                              <div className="text-sm text-muted-foreground">
-                                作成日: {formatDate(key.created_at)}
+                      <div key={key.id} className="bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+                        <div className="p-5">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2.5 rounded-full ${key.is_active ? 'bg-green-50' : 'bg-gray-100'}`}>
+                                <Key className={`h-5 w-5 ${key.is_active ? 'text-green-600' : 'text-gray-400'}`} />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-base sm:text-lg">{key.name}</div>
+                                <div className="text-sm text-muted-foreground flex items-center mt-0.5">
+                                  <span className="inline-flex items-center">
+                                    <Clock className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
+                                    作成日: {formatDate(key.created_at)}
+                                  </span>
+                                </div>
                               </div>
                             </div>
+                            <Badge 
+                              variant={key.is_active ? "default" : "outline"} 
+                              className={`${key.is_active ? 'bg-green-100 text-green-800 hover:bg-green-100' : ''} px-3 py-1 text-xs font-medium rounded-full`}
+                            >
+                              {key.is_active ? "有効" : "無効"}
+                            </Badge>
                           </div>
-                          <Badge variant={key.is_active ? "default" : "outline"} className={key.is_active ? 'bg-green-100 text-green-800 hover:bg-green-100' : ''}>
-                            {key.is_active ? "有効" : "無効"}
-                          </Badge>
                         </div>
                         
-                        <Separator className="my-4" />
+                        <Separator />
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                          <div className="space-y-1">
-                            <div className="text-muted-foreground font-medium">最終使用日</div>
-                            <div className="flex items-center">
-                              <Clock className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
-                              {key.last_used_at ? formatDate(key.last_used_at) : '未使用'}
+                        <div className="p-5 bg-gray-50">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 text-sm">
+                            <div className="bg-white p-3 rounded-md border border-gray-100">
+                              <div className="text-gray-600 font-medium mb-2 flex items-center">
+                                <Clock className="h-4 w-4 mr-2 text-indigo-500" />
+                                最終使用日
+                              </div>
+                              <div className="font-medium pl-6">
+                                {key.last_used_at ? formatDate(key.last_used_at) : '未使用'}
+                              </div>
                             </div>
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <div className="text-muted-foreground font-medium">許可オリジン</div>
-                            <div className="flex items-center">
-                              <ExternalLink className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
-                              <span className="truncate">
+                            
+                            <div className="bg-white p-3 rounded-md border border-gray-100">
+                              <div className="text-gray-600 font-medium mb-2 flex items-center">
+                                <ExternalLink className="h-4 w-4 mr-2 text-indigo-500" />
+                                許可オリジン
+                              </div>
+                              <div className="font-medium pl-6 break-words">
                                 {key.allowed_origins && key.allowed_origins.length > 0 
                                   ? key.allowed_origins.join(', ') 
                                   : 'すべて許可'}
-                              </span>
+                              </div>
                             </div>
                           </div>
+                          
+                          {key.is_active && (
+                            <div className="mt-4 sm:mt-5 flex justify-end">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDeactivateKey(key.id)}
+                                className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 font-medium"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                無効化
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                        
-                        {key.is_active && (
-                          <div className="mt-4 flex justify-end">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleDeactivateKey(key.id)}
-                              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              無効化
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -495,7 +533,7 @@ export default function ApiKeysPage() {
                 <p className="text-sm text-muted-foreground ml-8">
                   ウィジェットの外観や動作をカスタマイズするためのオプションです。
                 </p>
-                <div className="bg-gray-50 p-4 rounded-md border border-gray-100 ml-8">
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-md border border-gray-200 font-mono text-xs sm:text-sm mb-4 sm:mb-6 relative overflow-x-auto">
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm font-medium text-indigo-700 mb-2">theme: ウィジェットの外観をカスタマイズ</p>
@@ -550,54 +588,81 @@ export default function ApiKeysPage() {
       
       {/* 新しいAPIキーの表示ダイアログ */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-green-50">
-                <Key className="h-5 w-5 text-green-600" />
+        <DialogContent className="max-w-[90vw] sm:max-w-md border-0 shadow-xl">
+          <div className="bg-green-50 p-4 rounded-t-lg border-b-4 border-green-500">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-white shadow-sm border border-green-100">
+                  <Key className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold text-green-800">APIキーが作成されました</DialogTitle>
+                  <DialogDescription className="text-green-700">
+                    このAPIキーは一度だけ表示されます。安全に保管してください。
+                  </DialogDescription>
+                </div>
               </div>
-              <div>
-                <DialogTitle className="text-xl">APIキーが作成されました</DialogTitle>
-                <DialogDescription>
-                  このAPIキーは一度だけ表示されます。安全な場所に保管してください。
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
+            </DialogHeader>
+          </div>
           
           {newKey && (
-            <div className="my-6">
-              <Label htmlFor="api-key" className="font-medium text-gray-700 mb-1.5 block">ウィジェット埋め込み用APIキー</Label>
-              <div className="p-3 bg-gray-50 border border-gray-200 rounded-md relative">
-                <p className="font-mono text-sm break-all pr-10">{newKey}</p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-2 right-2 h-8 w-8 p-0"
-                  onClick={() => copyToClipboard(newKey)}
-                >
-                  {copied ? 
-                    <div className="bg-green-100 text-green-700 rounded-full p-1.5">
-                      <Check className="h-4 w-4" />
-                    </div> : 
-                    <Copy className="h-4 w-4" />}
-                </Button>
+            <div className="px-6 py-5">
+              <div className="mb-5">
+                <Label htmlFor="api-key" className="font-semibold text-gray-800 mb-2 block flex items-center">
+                  <Clipboard className="h-4 w-4 mr-2 text-blue-600" />
+                  ウィジェット埋め込み用APIキー
+                </Label>
+                <div className="bg-amber-50 border border-amber-100 rounded-md p-3 sm:p-4 mb-4 relative font-mono text-sm">
+                  <p className="break-all pr-10 select-all">{newKey}</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-2.5 right-2.5 h-8 w-8 p-0 hover:bg-gray-100"
+                    onClick={() => copyToClipboard(newKey)}
+                    aria-label="クリップボードにコピー"
+                  >
+                    {copied ? 
+                      <div className="bg-green-100 text-green-700 rounded-full p-1.5 shadow-sm">
+                        <Check className="h-4 w-4" />
+                      </div> : 
+                      <div className="text-gray-500 hover:text-gray-700">
+                        <Copy className="h-4 w-4" />
+                      </div>}
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-start mt-4 bg-amber-50 p-3 rounded-md border border-amber-100">
-                <AlertTriangle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-amber-700">
-                  このキーはセキュリティ上の理由から二度と表示されません。必ずコピーして安全な場所に保管してください。
-                </p>
+              
+              <div className="bg-amber-50 p-3 sm:p-4 rounded-md border-l-4 border-amber-500 border-t border-r border-b border-amber-100 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <div className="flex items-start">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-amber-800">重要なセキュリティ情報</h4>
+                      <p className="text-sm text-amber-700">
+                        このキーはセキュリティ上の理由から二度と表示されません。必ず今コピーして安全な場所に保管してください。
+                      </p>
+                      <p className="text-sm text-amber-700">
+                        このキーが漏洩した場合は、すぐに無効化して新しいキーを作成してください。
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => setIsDialogOpen(false)}
+                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 h-auto shadow-sm transition-all duration-200"
+                  >
+                    理解しました、閉じる
+                  </Button>
+                </div>
               </div>
             </div>
           )}
           
-          <DialogFooter className="mt-2">
+          <DialogFooter className="bg-gray-50 px-4 sm:px-6 py-4 border-t border-gray-100">
             <Button 
               onClick={() => setIsDialogOpen(false)}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 h-auto shadow-sm transition-all duration-200"
             >
-              閉じる
+              理解しました、閉じる
             </Button>
           </DialogFooter>
         </DialogContent>

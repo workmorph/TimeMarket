@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TimeBid ウィジェット埋め込みサンプル</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eaeaea;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      color: #2563eb;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+    .widget-container {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    .code-section {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    pre {
+      background-color: #1e293b;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    code {
+      font-size: 0.9rem;
+    }
+    .instructions {
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #f0f9ff;
+      border-radius: 8px;
+      border-left: 4px solid #3b82f6;
+    }
+    .instructions h2 {
+      margin-top: 0;
+      color: #0369a1;
+    }
+    .instructions ol {
+      margin-left: 20px;
+    }
+    .instructions li {
+      margin-bottom: 10px;
+    }
+    .api-key-note {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fffbeb;
+      border-radius: 6px;
+      border-left: 4px solid #f59e0b;
+    }
+    .api-key-note h3 {
+      margin-top: 0;
+      color: #b45309;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>TimeBid ウィジェット</h1>
+    <p class="subtitle">外部サイトに簡単に埋め込めるオークションウィジェット</p>
+  </header>
+
+  <div class="container">
+    <div class="widget-section">
+      <h2>ウィジェットデモ</h2>
+      <p>以下は実際のTimeBidウィジェットです。このウィジェットを任意のWebサイトに埋め込むことができます。</p>
+      
+      <div class="widget-container" id="timebid-container">
+        <!-- ウィジェットがここに表示されます -->
+      </div>
+    </div>
+
+    <div class="code-section">
+      <h2>埋め込みコード</h2>
+      <p>以下のコードをあなたのWebサイトに貼り付けるだけで、TimeBidウィジェットを埋め込むことができます。</p>
+      
+      <pre><code>&lt;!-- TimeBid ウィジェットの読み込み --&gt;
+&lt;script src="https://cdn.timebid.com/widget/latest/timebid-widget.iife.js"&gt;&lt;/script&gt;
+
+&lt;!-- ウィジェットを表示するコンテナ --&gt;
+&lt;div id="timebid-container"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  document.addEventListener('DOMContentLoaded', function() {
+    // ウィジェットの初期化
+    const widget = TimeBid.createWidget({
+      apiKey: 'YOUR_API_KEY', // あなたのAPIキーに置き換えてください
+      containerId: 'timebid-container',
+      theme: {
+        primaryColor: '#2563eb',
+        secondaryColor: '#10b981',
+        fontFamily: 'system-ui, sans-serif',
+        borderRadius: '8px'
+      },
+      onBidPlaced: function(bid) {
+        console.log('入札が行われました:', bid);
+      },
+      onAuctionEnd: function(auction) {
+        console.log('オークションが終了しました:', auction);
+      }
+    });
+  });
+&lt;/script&gt;</code></pre>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <h2>ウィジェットの設定方法</h2>
+    <ol>
+      <li><strong>APIキーの取得</strong>: TimeBidダッシュボードからAPIキーを取得してください。</li>
+      <li><strong>スクリプトの読み込み</strong>: CDNからウィジェットスクリプトを読み込みます。</li>
+      <li><strong>コンテナの準備</strong>: ウィジェットを表示するためのコンテナ要素を用意します。</li>
+      <li><strong>ウィジェットの初期化</strong>: <code>TimeBid.createWidget()</code>関数を呼び出し、必要なオプションを設定します。</li>
+      <li><strong>イベントハンドラの設定</strong>: 必要に応じて、入札やオークション終了などのイベントに対するハンドラを設定します。</li>
+    </ol>
+
+    <div class="api-key-note">
+      <h3>APIキーについての注意</h3>
+      <p>APIキーはあなたのアカウントに紐づく重要な情報です。以下の点に注意してください：</p>
+      <ul>
+        <li>APIキーは第三者と共有しないでください。</li>
+        <li>許可するオリジン（ドメイン）を制限することをお勧めします。</li>
+        <li>APIキーの権限は必要最小限に設定してください。</li>
+        <li>定期的にAPIキーをローテーションすることをお勧めします。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- TimeBid ウィジェットの読み込み（デモ用） -->
+  <script>
+    // ウィジェットをシミュレートするためのモックコード
+    window.TimeBid = {
+      createWidget: function(config) {
+        console.log('TimeBid ウィジェット初期化:', config);
+        
+        const container = document.getElementById(config.containerId);
+        if (!container) return;
+        
+        // モックウィジェットの表示
+        container.innerHTML = `
+          <div style="border: 1px solid #e2e8f0; border-radius: ${config.theme?.borderRadius || '8px'}; overflow: hidden; font-family: ${config.theme?.fontFamily || 'system-ui, sans-serif'};">
+            <div style="padding: 1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="margin: 0; font-size: 1.125rem; font-weight: bold;">プレミアムコンサルティング</h3>
+              <span style="background-color: ${config.theme?.primaryColor || '#3498db'}; color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">残り30分</span>
+            </div>
+            
+            <div style="padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span style="font-size: 0.875rem; color: #64748b;">現在価格</span>
+                <span style="font-size: 1.25rem; font-weight: bold; color: ${config.theme?.primaryColor || '#3498db'};">¥25,000</span>
+              </div>
+              
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 1rem 0;">
+              
+              <div style="font-size: 0.875rem; margin-bottom: 1rem;">
+                <div style="margin-bottom: 0.5rem;">60分のセッション</div>
+                <div>開始価格: ¥15,000</div>
+              </div>
+              
+              <div style="margin-top: 1rem;">
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <input type="number" placeholder="¥26,000以上" style="flex: 1; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.25rem;">
+                  <button style="padding: 0.5rem 1rem; background-color: ${config.theme?.primaryColor || '#3498db'}; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">入札する</button>
+                </div>
+                <div style="font-size: 0.75rem; color: #64748b;">※最低入札額は現在価格の5%増しです</div>
+              </div>
+            </div>
+            
+            <div style="padding: 1rem; background-color: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 0.875rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <span>入札数: 8</span>
+                <span>閲覧数: 42</span>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // ボタンにクリックイベントを追加
+        const bidButton = container.querySelector('button');
+        if (bidButton) {
+          bidButton.addEventListener('click', function() {
+            const input = container.querySelector('input');
+            const bidAmount = input ? input.value : '';
+            
+            if (!bidAmount || parseInt(bidAmount) < 26000) {
+              alert('入札額は¥26,000以上である必要があります。');
+              return;
+            }
+            
+            alert(`¥${bidAmount}で入札しました！`);
+            
+            // 入札イベントの発火
+            if (config.onBidPlaced) {
+              config.onBidPlaced({
+                auctionId: 'mock-auction-123',
+                amount: parseInt(bidAmount),
+                timestamp: new Date().toISOString()
+              });
+            }
+          });
+        }
+        
+        return {
+          refresh: function() {
+            console.log('ウィジェットをリフレッシュします');
+          },
+          isConnectedToServer: function() {
+            return true;
+          }
+        };
+      },
+      version: '1.0.0'
+    };
+  </script>
+</body>
+</html>
