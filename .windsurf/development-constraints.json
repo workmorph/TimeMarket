@@ -1,0 +1,30 @@
+{
+  "rules": {
+    "maxBundleSize": "2MB",
+    "maxApiCallCost": 0.01,
+    "requiredDependencies": ["@supabase/supabase-js", "stripe", "openai"],
+    "forbiddenDependencies": ["jquery", "bootstrap", "lodash"],
+    "requiredTests": ["unit", "integration"],
+    "minCoverage": 80,
+    "maxResponseTime": "2000ms",
+    "requiredTypeScript": true
+  },
+  "monitoring": {
+    "performanceMetrics": true,
+    "securityScans": true,
+    "dependencyVulnerabilities": true,
+    "bundleAnalysis": true
+  },
+  "alerts": {
+    "criticalErrors": "immediate",
+    "performanceDegradation": "daily",
+    "securityIssues": "immediate",
+    "dependencyUpdates": "weekly"
+  },
+  "codeQuality": {
+    "eslintRequired": true,
+    "prettierRequired": true,
+    "typescriptStrict": true,
+    "noConsoleInProduction": true
+  }
+}

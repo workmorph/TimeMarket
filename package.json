@@ -6,7 +6,18 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "widget:dev": "vite --config vite.config.js",
+    "widget:build": "tsc --project tsconfig.widget.json && vite build --config vite.config.js",
+    "widget:preview": "vite preview --config vite.config.js",
+    "windsurf:scan": "ts-node scripts/windsurf-issue-scanner.ts",
+    "windsurf:execute": "ts-node scripts/windsurf-executor.ts",
+    "windsurf:status": "cat .windsurf/status-dashboard.md",
+    "windsurf:log": "cat .windsurf/execution-log.md",
+    "check-status": "bash check-status.sh",
+    "type-check": "tsc --noEmit",
+    "test": "echo 'Tests to be implemented'",
+    "lighthouse": "echo 'Lighthouse to be implemented'"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -39,10 +50,14 @@
     "@types/node": "^20.17.57",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
+    "eslint-plugin-security": "^3.0.1",
     "tailwindcss": "^4",
+    "terser": "^5.40.0",
     "tw-animate-css": "^1.3.3",
-    "typescript": "^5"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
   }
 }
