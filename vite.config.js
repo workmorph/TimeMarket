@@ -4,7 +4,7 @@ import { resolve } from 'path';
 export default defineConfig({
   build: {
     lib: {
-      entry: './src/widget/index.js',
+      entry: resolve(__dirname, 'src/widget/index.ts'),
       name: 'TimeBidWidget',
       fileName: (format) => `timebid-widget.${format}.js`,
       formats: ['es', 'umd', 'iife']
@@ -12,10 +12,14 @@ export default defineConfig({
     rollupOptions: {
       external: [],
       output: {
-        globals: {}
+        globals: {},
+        manualChunks: undefined
       }
     },
     sourcemap: true,
-    minify: 'terser'
+    minify: 'terser',
+    outDir: 'dist/widget',
+    emptyOutDir: true,
+    target: 'es2015'
   }
 });

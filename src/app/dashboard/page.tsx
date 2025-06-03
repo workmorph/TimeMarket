@@ -110,9 +110,12 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">ダッシュボード</h1>
+        <div>
+          <h1 className="text-3xl font-bold">ダッシュボード</h1>
+          <p className="text-gray-500 mt-1">アカウント概要とアクティビティ</p>
+        </div>
         <Link href="/auctions/create">
           <Button>
             <PlusCircle className="w-4 h-4 mr-2" />
@@ -129,55 +132,68 @@ export default function DashboardPage() {
         <>
           {/* 統計カード */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
+            <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+              <div className="h-1 bg-blue-600"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">総収益</CardTitle>
-                <Wallet className="h-4 w-4 text-muted-foreground" />
+                <div className="p-2 rounded-full bg-blue-50">
+                  <Wallet className="h-4 w-4 text-blue-600" />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(stats.totalEarnings)}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="flex items-center text-xs text-green-600 font-medium mt-2">
+                  <TrendingUp className="h-3 w-3 mr-1" />
                   前月比 +12%
-                </p>
+                </div>
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+              <div className="h-1 bg-purple-600"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">アクティブオークション</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <div className="p-2 rounded-full bg-purple-50">
+                  <TrendingUp className="h-4 w-4 text-purple-600" />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.activeAuctions}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="flex items-center text-xs text-muted-foreground mt-2">
                   完了済み: {stats.completedAuctions}
-                </p>
+                </div>
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+              <div className="h-1 bg-amber-600"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">総入札数</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <div className="p-2 rounded-full bg-amber-50">
+                  <Users className="h-4 w-4 text-amber-600" />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.totalBids}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="flex items-center text-xs text-muted-foreground mt-2">
                   平均: {formatCurrency(stats.averageBidAmount)}/件
-                </p>
+                </div>
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+              <div className="h-1 bg-emerald-600"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">予定セッション</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <div className="p-2 rounded-full bg-emerald-50">
+                  <Calendar className="h-4 w-4 text-emerald-600" />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.upcomingSessions}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="flex items-center text-xs text-muted-foreground mt-2">
                   今週: 2件 / 来週: 1件
-                </p>
+                </div>
               </CardContent>
             </Card>
           </div>
