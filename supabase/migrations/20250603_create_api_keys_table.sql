@@ -22,22 +22,27 @@ CREATE INDEX IF NOT EXISTS api_keys_key_idx ON api_keys(key);
 ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
 
 -- ユーザーは自分のAPIキーのみ閲覧可能
+DROP POLICY IF EXISTS "Users can view their own API keys" ON api_keys;
 CREATE POLICY "Users can view their own API keys" ON api_keys
   FOR SELECT USING (auth.uid() = user_id);
 
 -- ユーザーは自分のAPIキーのみ作成可能
+DROP POLICY IF EXISTS "Users can insert their own API keys" ON api_keys;
 CREATE POLICY "Users can insert their own API keys" ON api_keys
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- ユーザーは自分のAPIキーのみ更新可能
+DROP POLICY IF EXISTS "Users can update their own API keys" ON api_keys;
 CREATE POLICY "Users can update their own API keys" ON api_keys
   FOR UPDATE USING (auth.uid() = user_id);
 
 -- ユーザーは自分のAPIキーのみ削除可能
+DROP POLICY IF EXISTS "Users can delete their own API keys" ON api_keys;
 CREATE POLICY "Users can delete their own API keys" ON api_keys
   FOR DELETE USING (auth.uid() = user_id);
 
 -- サービスロールはすべてのAPIキーにアクセス可能
+DROP POLICY IF EXISTS "Service role has full access to API keys" ON api_keys;
 CREATE POLICY "Service role has full access to API keys" ON api_keys
   USING (auth.role() = 'service_role');
 
@@ -50,6 +55,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_api_keys_updated_at ON api_keys;
 CREATE TRIGGER update_api_keys_updated_at
 BEFORE UPDATE ON api_keys
 FOR EACH ROW
