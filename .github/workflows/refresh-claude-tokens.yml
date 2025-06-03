@@ -1,0 +1,33 @@
+name: Refresh Claude Tokens
+on:
+  schedule:
+    - cron: '0 18 * * *'   # 03:00 JST
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write                # gh secret set で必要
+
+    steps:
+      - name: Install Claude CLI
+        run: npm i -g @anthropic-ai/claude-code@latest
+
+      - name: Ensure jq is present    # ← 追加行
+        run: sudo apt-get update && sudo apt-get -y install jq
+
+      - name: Headless relogin
+        env:
+          CLAUDE_EMAIL:    ${{ secrets.CLAUDE_EMAIL }}
+          CLAUDE_PASSWORD: ${{ secrets.CLAUDE_PASSWORD }}
+        run: |
+          claude login --headless -e "$CLAUDE_EMAIL" -p "$CLAUDE_PASSWORD"
+          cred="$HOME/.claude/.credentials.json"
+          ACCESS=$(jq -r '.claudeAiOauth.accessToken'   "$cred")
+          REFRESH=$(jq -r '.claudeAiOauth.refreshToken' "$cred")
+          EXPIRES=$(jq -r '.claudeAiOauth.expiresAt'    "$cred")
+          gh secret set CLAUDE_ACCESS_TOKEN  -b"$ACCESS"
+          gh secret set CLAUDE_REFRESH_TOKEN -b"$REFRESH"
+          gh secret set CLAUDE_EXPIRES_AT    -b"$EXPIRES"
