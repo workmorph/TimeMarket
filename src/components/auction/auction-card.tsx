@@ -11,6 +11,7 @@ import {
     TrendingUp, MessageCircle, ExternalLink, ChevronRight
 } from 'lucide-react'
 import { BidForm } from './bid-form'
+import Link from 'next/link'
 
 // Mock data (後でAPI/propsに置換)
 const mockAuction = {
@@ -119,7 +120,7 @@ export function AuctionDetail() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
                 {/* Breadcrumb */}
                 <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
-                    <a href="/auctions" className="hover:text-blue-600">オークション一覧</a>
+                    <Link href="/auctions" className="hover:text-blue-600">オークション一覧</Link>
                     <ChevronRight className="w-4 h-4" />
                     <span className="text-gray-900 truncate">{auction.title}</span>
                 </nav>
@@ -283,6 +284,67 @@ export function AuctionDetail() {
                                     {bids.map((bid, index) => (
                                         <div key={bid.id} className="flex items-center justify-between py-2">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-                                                    }`}>
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                                                     {index + 1}
+                                                </div>
+                                                <div>
+                                                    <div className="font-medium">{bid.bidder_name}</div>
+                                                    <div className="text-xs text-muted-foreground">{formatDateTime(bid.created_at)}</div>
+                                                </div>
+                                            </div>
+                                            <div className="font-bold text-right">{formatCurrency(bid.amount)}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                        
+                        {/* 入札フォーム */}
+                        {isActive && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>入札する</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <BidForm currentBid={auction.current_highest_bid} />
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                    
+                    {/* サイドバー */}
+                    <div>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>オークション情報</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <div className="text-sm text-muted-foreground">開始日時</div>
+                                    <div className="font-medium">{formatDateTime(auction.created_at)}</div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="text-sm text-muted-foreground">終了日時</div>
+                                    <div className="font-medium">{formatDateTime(auction.ends_at)}</div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="text-sm text-muted-foreground">開始価格</div>
+                                    <div className="font-medium">{formatCurrency(auction.starting_price)}</div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="text-sm text-muted-foreground">現在価格</div>
+                                    <div className="font-bold text-blue-600">{formatCurrency(auction.current_highest_bid)}</div>
+                                </div>
+                                <Separator />
+                                <div className="space-y-2">
+                                    <div className="text-sm text-muted-foreground">入札数</div>
+                                    <div className="font-medium">{auction.bid_count}件</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
