@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AuctionListCard } from '@/components/auction/AuctionListCard'
+import { LoadingState } from '@/components/ui/loading-state'
+import { ErrorState } from '@/components/ui/error-state'
 import { 
   TrendingUp, Users, Calendar, 
   Wallet, PlusCircle 
@@ -81,6 +83,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState(mockStats)
   const [auctions, setAuctions] = useState(mockAuctions)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     // APIからデータを取得する処理（モック）
@@ -100,8 +103,9 @@ export default function DashboardPage() {
           setAuctions(mockAuctions)
           setIsLoading(false)
         }, 500)
-      } catch (error) {
-        console.error('ダッシュボードデータの取得に失敗しました', error)
+      } catch (err) {
+        console.error('ダッシュボードデータの取得に失敗しました', err)
+        setError(err instanceof Error ? err : new Error('データの取得に失敗しました'))
         setIsLoading(false)
       }
     }
@@ -124,10 +128,23 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+      {error ? (
+        <ErrorState 
+          error={error} 
+          retry={() => {
+            setError(null)
+            setIsLoading(true)
+            window.location.reload()
+          }}
+          variant="page"
+        />
+      ) : isLoading ? (
+        <LoadingState 
+          variant="spinner" 
+          size="lg" 
+          message="ダッシュボードを読み込んでいます..."
+          className="h-64"
+        />
       ) : (
         <>
           {/* 統計カード */}

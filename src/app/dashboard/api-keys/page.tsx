@@ -11,7 +11,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertOctagon, AlertTriangle, Check, Clock, Copy, ExternalLink, Key, Trash2, Clipboard } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LoadingState } from '@/components/ui/loading-state'
+import { ErrorState } from '@/components/ui/error-state'
+import { AlertOctagon, AlertTriangle, Check, Clock, Copy, ExternalLink, Key, Trash2, Clipboard, Search, Filter } from "lucide-react"
 import { ApiKey } from '@/models/ApiKey'
 
 export default function ApiKeysPage() {
@@ -26,6 +29,8 @@ export default function ApiKeysPage() {
   const [isCreatingKey, setIsCreatingKey] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   
   // 認証チェック
   useEffect(() => {
@@ -164,12 +169,24 @@ export default function ApiKeysPage() {
     return new Date(dateString).toLocaleString('ja-JP')
   }
   
+  // フィルタリングされたAPIキー
+  const filteredKeys = apiKeys.filter(key => {
+    const matchesSearch = key.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && key.is_active) || 
+      (statusFilter === 'inactive' && !key.is_active)
+    return matchesSearch && matchesStatus
+  })
+
   if (authLoading) {
     return (
       <div className="container mx-auto py-10">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
+        <LoadingState 
+          variant="spinner" 
+          size="lg" 
+          message="認証を確認しています..."
+          className="h-64"
+        />
       </div>
     )
   }
@@ -279,41 +296,69 @@ export default function ApiKeysPage() {
             
             {/* エラーメッセージ */}
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 border-t border-r border-b border-red-100 text-red-700 p-3 sm:p-4 rounded-md mx-4 sm:mx-6 my-3 text-sm shadow-sm">
-                <div className="flex items-start">
-                  <AlertOctagon className="h-5 w-5 mr-3 text-red-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold mb-1">エラーが発生しました</h4>
-                    <p>{error}</p>
-                    <p className="text-xs text-red-600 mt-2">
-                      問題が解決しない場合は、サポートにお問い合わせください。
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <ErrorState 
+                error={{ message: error }} 
+                retry={() => {
+                  setError(null)
+                  window.location.reload()
+                }}
+                variant="inline"
+                className="mb-4"
+              />
             )}
             
             {/* APIキーリスト */}
             <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
               <div className="h-1 bg-purple-600"></div>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-purple-50">
-                    <Clipboard className="h-5 w-5 text-purple-600" />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-full bg-purple-50">
+                      <Clipboard className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <CardTitle>APIキー一覧</CardTitle>
+                      <CardDescription>
+                        作成したAPIキーの管理と無効化を行います
+                      </CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle>APIキー一覧</CardTitle>
-                    <CardDescription>
-                      作成したAPIキーの管理と無効化を行います
-                    </CardDescription>
-                  </div>
+                  
+                  {/* 検索・フィルター */}
+                  {apiKeys.length > 0 && (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="キー名で検索..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                      <Select value={statusFilter} onValueChange={(value: 'all' | 'active' | 'inactive') => setStatusFilter(value)}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                          <Filter className="h-4 w-4 mr-2" />
+                          <SelectValue placeholder="ステータス" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">すべて</SelectItem>
+                          <SelectItem value="active">有効</SelectItem>
+                          <SelectItem value="inactive">無効</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                  </div>
+                  <LoadingState 
+                    variant="spinner" 
+                    size="md" 
+                    message="APIキーを読み込んでいます..."
+                    className="py-8"
+                  />
                 ) : apiKeys.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <div className="p-4 rounded-full bg-gray-100 mb-4">
@@ -326,9 +371,21 @@ export default function ApiKeysPage() {
                       上記フォームから新しいAPIキーを作成してください。
                     </p>
                   </div>
+                ) : filteredKeys.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="p-4 rounded-full bg-gray-100 mb-4">
+                      <Search className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <p className="text-lg font-medium text-gray-500 mb-1">
+                      検索結果がありません
+                    </p>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      検索条件を変更してお試しください
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-5">
-                    {apiKeys.map((key) => (
+                    {filteredKeys.map((key) => (
                       <div key={key.id} className="bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                         <div className="p-5">
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-3">
