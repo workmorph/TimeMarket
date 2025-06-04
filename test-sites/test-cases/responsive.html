@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>レスポンシブテスト - TimeBidウィジェット</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    
+    .viewport-controls {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: white;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    
+    .viewport-controls button {
+      display: block;
+      margin: 5px 0;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    
+    .viewport-info {
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    
+    .container-wrapper {
+      margin: 0 auto;
+      transition: all 0.3s ease;
+      border: 2px dashed #3498db;
+      padding: 20px;
+      min-height: 500px;
+    }
+    
+    /* デスクトップ */
+    .desktop {
+      width: 1200px;
+      max-width: 100%;
+    }
+    
+    /* タブレット */
+    .tablet {
+      width: 768px;
+      max-width: 100%;
+    }
+    
+    /* モバイル */
+    .mobile {
+      width: 375px;
+      max-width: 100%;
+    }
+    
+    /* 横向き */
+    .landscape {
+      width: 667px;
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewport-controls">
+    <div class="viewport-info">
+      現在のビューポート: <span id="current-viewport">デスクトップ</span>
+    </div>
+    <button onclick="setViewport('desktop')">デスクトップ (1200px)</button>
+    <button onclick="setViewport('tablet')">タブレット (768px)</button>
+    <button onclick="setViewport('mobile')">モバイル (375px)</button>
+    <button onclick="setViewport('landscape')">横向き (667px)</button>
+  </div>
+
+  <h1>レスポンシブテスト</h1>
+  
+  <div class="container-wrapper desktop" id="wrapper">
+    <div id="timebid-container"></div>
+  </div>
+
+  <script>
+    // ビューポート切り替え
+    function setViewport(type) {
+      const wrapper = document.getElementById('wrapper');
+      const viewportInfo = document.getElementById('current-viewport');
+      
+      // 既存のクラスを削除
+      wrapper.className = 'container-wrapper';
+      
+      // 新しいクラスを追加
+      wrapper.classList.add(type);
+      
+      // ビューポート情報を更新
+      const viewportNames = {
+        desktop: 'デスクトップ (1200px)',
+        tablet: 'タブレット (768px)',
+        mobile: 'モバイル (375px)',
+        landscape: '横向き (667px)'
+      };
+      
+      viewportInfo.textContent = viewportNames[type];
+      
+      // ウィジェットにリサイズイベントを送信
+      window.dispatchEvent(new Event('resize'));
+    }
+
+    // ウィジェット読み込み
+    const script = document.createElement('script');
+    script.src = 'https://cdn.timebid.com/widget/latest/timebid-widget.iife.js';
+    
+    script.onload = () => {
+      window.TimeBid.createWidget({
+        apiKey: 'test_api_key_12345',
+        containerId: 'timebid-container',
+        theme: {
+          primaryColor: '#3498db',
+          borderRadius: '8px'
+        },
+        responsive: true // レスポンシブモードを有効化
+      });
+    };
+    
+    document.head.appendChild(script);
+
+    // ウィンドウサイズ変更時の動作確認
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        console.log('Window resized:', window.innerWidth, 'x', window.innerHeight);
+      }, 300);
+    });
+  </script>
+</body>
+</html>

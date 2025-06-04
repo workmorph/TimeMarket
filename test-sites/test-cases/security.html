@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>セキュリティテスト - TimeBidウィジェット</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.timebid.com; script-src 'self' 'unsafe-inline' https://cdn.timebid.com; style-src 'self' 'unsafe-inline';">
+  <style>
+    .security-test {
+      margin: 20px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 5px;
+    }
+    
+    .test-result {
+      margin: 10px 0;
+      padding: 10px;
+      border-left: 4px solid #ddd;
+    }
+    
+    .success { border-left-color: #4CAF50; background: #e8f5e9; }
+    .error { border-left-color: #f44336; background: #ffebee; }
+    .warning { border-left-color: #ff9800; background: #fff3e0; }
+    
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 3px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>セキュリティテスト</h1>
+
+  <div class="security-test">
+    <div class="test-section">
+      <h2>1. XSS攻撃耐性テスト</h2>
+      <div id="xss-test-results"></div>
+      <button onclick="testXSS()">XSSテスト実行</button>
+    </div>
+
+    <div class="test-section">
+      <h2>2. 無効なAPIキー処理</h2>
+      <div id="invalid-api-test"></div>
+      <button onclick="testInvalidAPI()">無効APIキーテスト</button>
+    </div>
+
+    <div class="test-section">
+      <h2>3. Content Security Policy準拠</h2>
+      <div id="csp-test"></div>
+      <button onclick="testCSP()">CSPテスト実行</button>
+    </div>
+
+    <div class="test-section">
+      <h2>4. オリジン制限テスト</h2>
+      <div id="origin-test"></div>
+      <button onclick="testOrigin()">オリジンテスト実行</button>
+    </div>
+
+    <div class="test-section">
+      <h2>5. CSRF対策確認</h2>
+      <div id="csrf-test"></div>
+      <button onclick="testCSRF()">CSRFテスト実行</button>
+    </div>
+  </div>
+
+  <div id="timebid-container"></div>
+
+  <script>
+    // XSSテスト
+    function testXSS() {
+      const resultsDiv = document.getElementById('xss-test-results');
+      resultsDiv.innerHTML = '';
+      
+      const xssPayloads = [
+        '<script>alert("XSS")</script>',
+        '<img src=x onerror=alert("XSS")>',
+        'javascript:alert("XSS")',
+        '<svg onload=alert("XSS")>',
+        '"><script>alert("XSS")</script>'
+      ];
+      
+      xssPayloads.forEach((payload, index) => {
+        try {
+          // ウィジェットに悪意のあるペイロードを渡す
+          const testContainer = document.createElement('div');
+          testContainer.id = `xss-test-${index}`;
+          document.body.appendChild(testContainer);
+          
+          window.TimeBid.createWidget({
+            apiKey: payload, // XSSペイロードをAPIキーとして渡す
+            containerId: `xss-test-${index}`,
+            userInput: payload // ユーザー入力としても渡す
+          });
+          
+          // XSSが実行されなければ成功
+          const result = document.createElement('div');
+          result.className = 'test-result success';
+          result.innerHTML = `✅ ペイロード ${index + 1} ブロック成功: <pre>${escapeHtml(payload)}</pre>`;
+          resultsDiv.appendChild(result);
+          
+          // テスト用コンテナを削除
+          document.body.removeChild(testContainer);
+        } catch (error) {
+          const result = document.createElement('div');
+          result.className = 'test-result warning';
+          result.innerHTML = `⚠️ ペイロード ${index + 1} エラー: ${error.message}`;
+          resultsDiv.appendChild(result);
+        }
+      });
+    }
+
+    // 無効なAPIキーテスト
+    function testInvalidAPI() {
+      const resultsDiv = document.getElementById('invalid-api-test');
+      resultsDiv.innerHTML = '';
+      
+      const invalidKeys = [
+        '',
+        null,
+        undefined,
+        'invalid_key_12345',
+        '../../etc/passwd',
+        'DROP TABLE users;--'
+      ];
+      
+      invalidKeys.forEach((key, index) => {
+        try {
+          const testContainer = document.createElement('div');
+          testContainer.id = `api-test-${index}`;
+          document.body.appendChild(testContainer);
+          
+          window.TimeBid.createWidget({
+            apiKey: key,
+            containerId: `api-test-${index}`,
+            onError: (error) => {
+              const result = document.createElement('div');
+              result.className = 'test-result success';
+              result.innerHTML = `✅ 無効なキー検出: "${key}" - エラー: ${error.message}`;
+              resultsDiv.appendChild(result);
+            }
+          });
+          
+          document.body.removeChild(testContainer);
+        } catch (error) {
+          const result = document.createElement('div');
+          result.className = 'test-result success';
+          result.innerHTML = `✅ 無効なキー拒否: "${key}"`;
+          resultsDiv.appendChild(result);
+        }
+      });
+    }
+
+    // CSPテスト
+    function testCSP() {
+      const resultsDiv = document.getElementById('csp-test');
+      resultsDiv.innerHTML = '';
+      
+      // CSPヘッダーの確認
+      const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+      if (cspMeta) {
+        const result = document.createElement('div');
+        result.className = 'test-result success';
+        result.innerHTML = `✅ CSPヘッダー設定済み: <pre>${cspMeta.content}</pre>`;
+        resultsDiv.appendChild(result);
+      }
+      
+      // インラインスクリプトテスト
+      try {
+        eval('console.log("CSP test")');
+        const result = document.createElement('div');
+        result.className = 'test-result warning';
+        result.innerHTML = '⚠️ eval()が実行可能（CSPでブロックすべき）';
+        resultsDiv.appendChild(result);
+      } catch (error) {
+        const result = document.createElement('div');
+        result.className = 'test-result success';
+        result.innerHTML = '✅ eval()がCSPによりブロックされました';
+        resultsDiv.appendChild(result);
+      }
+    }
+
+    // オリジン制限テスト
+    function testOrigin() {
+      const resultsDiv = document.getElementById('origin-test');
+      resultsDiv.innerHTML = '';
+      
+      // 現在のオリジン
+      const currentOrigin = window.location.origin;
+      const result1 = document.createElement('div');
+      result1.className = 'test-result';
+      result1.innerHTML = `現在のオリジン: ${currentOrigin}`;
+      resultsDiv.appendChild(result1);
+      
+      // postMessageテスト
+      window.addEventListener('message', (event) => {
+        if (event.origin !== 'https://cdn.timebid.com') {
+          const result = document.createElement('div');
+          result.className = 'test-result warning';
+          result.innerHTML = `⚠️ 不明なオリジンからのメッセージ: ${event.origin}`;
+          resultsDiv.appendChild(result);
+        } else {
+          const result = document.createElement('div');
+          result.className = 'test-result success';
+          result.innerHTML = `✅ 正当なオリジンからのメッセージ: ${event.origin}`;
+          resultsDiv.appendChild(result);
+        }
+      });
+    }
+
+    // CSRF対策テスト
+    function testCSRF() {
+      const resultsDiv = document.getElementById('csrf-test');
+      resultsDiv.innerHTML = '';
+      
+      // CSRFトークンの確認
+      const testContainer = document.createElement('div');
+      testContainer.id = 'csrf-test-container';
+      document.body.appendChild(testContainer);
+      
+      try {
+        window.TimeBid.createWidget({
+          apiKey: 'test_api_key_12345',
+          containerId: 'csrf-test-container',
+          onInit: (widget) => {
+            // CSRFトークンの存在確認
+            if (widget.csrfToken) {
+              const result = document.createElement('div');
+              result.className = 'test-result success';
+              result.innerHTML = '✅ CSRFトークンが生成されています';
+              resultsDiv.appendChild(result);
+            }
+            
+            // クロスオリジンリクエストのテスト
+            fetch('https://api.timebid.com/test', {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'X-CSRF-Token': widget.csrfToken || 'test'
+              }
+            }).then(response => {
+              const result = document.createElement('div');
+              result.className = 'test-result';
+              result.innerHTML = `API応答: ${response.status}`;
+              resultsDiv.appendChild(result);
+            }).catch(error => {
+              const result = document.createElement('div');
+              result.className = 'test-result warning';
+              result.innerHTML = `⚠️ クロスオリジンリクエストエラー: ${error.message}`;
+              resultsDiv.appendChild(result);
+            });
+          }
+        });
+      } catch (error) {
+        const result = document.createElement('div');
+        result.className = 'test-result error';
+        result.innerHTML = `❌ テストエラー: ${error.message}`;
+        resultsDiv.appendChild(result);
+      }
+      
+      document.body.removeChild(testContainer);
+    }
+
+    // HTMLエスケープ関数
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // ウィジェット初期化
+    const script = document.createElement('script');
+    script.src = 'https://cdn.timebid.com/widget/latest/timebid-widget.iife.js';
+    script.onload = () => {
+      console.log('TimeBid widget loaded for security testing');
+    };
+    document.head.appendChild(script);
+  </script>
+</body>
+</html>

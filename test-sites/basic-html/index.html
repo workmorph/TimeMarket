@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TimeBidウィジェット テスト - 基本HTML</title>
+</head>
+<body>
+  <h1>TimeBidウィジェット 埋め込みテスト</h1>
+  
+  
+  <div id="timebid-container"></div>
+  
+  
+  <script src="https://cdn.timebid.com/widget/latest/timebid-widget.iife.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const widget = TimeBid.createWidget({
+        apiKey: 'test_api_key_12345',
+        containerId: 'timebid-container',
+        theme: {
+          primaryColor: '#3498db',
+          borderRadius: '8px'
+        }
+      });
+    });
+  </script>
+</body>
+</html>
