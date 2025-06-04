@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,8 +21,24 @@ import {
     Clock, Calendar, MapPin, DollarSign,
     Info, Lightbulb, Save, Eye, AlertCircle
 } from 'lucide-react'
-import { AIPricingSuggestion } from '@/components/pricing/AIPricingSuggestion'
 import { formatCurrency } from '@/lib/utils'
+
+// Dynamic import for heavy component
+const AIPricingSuggestion = dynamic(
+  () => import('@/components/pricing/AIPricingSuggestion').then(mod => mod.AIPricingSuggestion),
+  { 
+    loading: () => (
+      <div className="p-4 border rounded-md bg-gray-50">
+        <div className="animate-pulse flex space-x-4">
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+)
 
 // Mock user data
 const useAuth = () => ({

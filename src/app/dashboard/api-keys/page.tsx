@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { useAuth } from '@/hooks/use-auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -10,8 +11,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { AlertOctagon, AlertTriangle, Check, Copy, ExternalLink, Key, Clipboard, Plus, BookOpen } from "lucide-react"
 import { ApiKey } from '@/models/ApiKey'
-import { ApiKeyManagement } from '@/components/dashboard/ApiKeyManagement'
 import { ApiKeyCreateForm, ApiKeyFormData } from '@/components/forms/ApiKeyCreateForm'
+
+// Dynamic import for heavy component
+const ApiKeyManagement = dynamic(
+  () => import('@/components/dashboard/ApiKeyManagement').then(mod => mod.ApiKeyManagement),
+  { 
+    loading: () => (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    ),
+    ssr: false 
+  }
+)
 
 export default function ApiKeysPage() {
   const { user, isLoading: authLoading } = useAuth()
