@@ -129,20 +129,122 @@ export default function PrivacyPage() {
             <li className="mb-2">メッセージデータは、取引完了後も一定期間保存されますが、ユーザーは自身のアカウントから過去のメッセージを削除することができます。</li>
           </ol>
 
-          <h2 className="text-xl font-semibold text-gray-800 mt-8 mb-4">10. プライバシーポリシーの変更</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mt-8 mb-4">10. Cookieおよびトラッキング技術の使用</h2>
+          <p className="text-gray-600 mb-4">
+            当社は、本サービスの利便性向上およびマーケティング活動の最適化のため、以下の技術を使用しています。
+          </p>
+          
+          <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-3">Cookieの種類と目的</h3>
+          <ol className="list-decimal pl-6 mb-6 text-gray-600">
+            <li className="mb-2"><strong>必須Cookie</strong>：ログイン状態の維持、セキュリティの確保など、サービスの基本機能に必要不可欠なCookie</li>
+            <li className="mb-2"><strong>機能性Cookie</strong>：言語設定、表示設定など、ユーザーの利便性を向上させるためのCookie</li>
+            <li className="mb-2"><strong>分析Cookie</strong>：Google Analyticsなどを使用した、サービス改善のための統計データ収集Cookie</li>
+            <li className="mb-2"><strong>マーケティングCookie</strong>：広告の効果測定や、ユーザーに適した広告を表示するためのCookie</li>
+          </ol>
+          
+          <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-3">Cookieの管理</h3>
+          <p className="text-gray-600 mb-4">
+            ユーザーは、ブラウザの設定によりCookieの受け入れを拒否することができます。ただし、必須Cookieを無効にした場合、本サービスの一部機能が利用できなくなる可能性があります。
+          </p>
+          <p className="text-gray-600 mb-4">
+            主要ブラウザでのCookie設定方法：
+          </p>
+          <ul className="list-disc pl-6 mb-6 text-gray-600">
+            <li className="mb-2">Chrome：設定 → プライバシーとセキュリティ → Cookie と他のサイトデータ</li>
+            <li className="mb-2">Safari：環境設定 → プライバシー → Cookie とウェブサイトのデータ</li>
+            <li className="mb-2">Firefox：設定 → プライバシーとセキュリティ → Cookie とサイトデータ</li>
+            <li className="mb-2">Edge：設定 → プライバシー、検索、サービス → Cookie とサイトのアクセス許可</li>
+          </ul>
+
+          <h2 className="text-xl font-semibold text-gray-800 mt-8 mb-4">11. 国際的なデータ移転とGDPR対応</h2>
+          
+          <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-3">EEA居住者の権利</h3>
+          <p className="text-gray-600 mb-4">
+            欧州経済領域（EEA）に居住するユーザーは、GDPR（一般データ保護規則）に基づき、以下の権利を有します：
+          </p>
+          <ol className="list-decimal pl-6 mb-6 text-gray-600">
+            <li className="mb-2"><strong>アクセス権</strong>：当社が保有する個人データへのアクセスを請求する権利</li>
+            <li className="mb-2"><strong>訂正権</strong>：不正確な個人データの訂正を請求する権利</li>
+            <li className="mb-2"><strong>削除権（忘れられる権利）</strong>：特定の条件下で個人データの削除を請求する権利</li>
+            <li className="mb-2"><strong>処理制限権</strong>：個人データの処理を制限するよう請求する権利</li>
+            <li className="mb-2"><strong>データポータビリティ権</strong>：構造化された一般的に使用される形式で個人データを受け取る権利</li>
+            <li className="mb-2"><strong>異議申立権</strong>：特定の処理活動に対して異議を申し立てる権利</li>
+            <li className="mb-2"><strong>自動化された意思決定を受けない権利</strong>：プロファイリングを含む自動化された処理のみに基づく決定の対象とならない権利</li>
+          </ol>
+          
+          <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-3">データ処理の法的根拠</h3>
+          <p className="text-gray-600 mb-4">
+            当社は、以下のいずれかの法的根拠に基づいて個人データを処理します：
+          </p>
+          <ul className="list-disc pl-6 mb-6 text-gray-600">
+            <li className="mb-2">契約の履行：サービス提供のために必要な処理</li>
+            <li className="mb-2">法的義務の遵守：法令により要求される処理</li>
+            <li className="mb-2">正当な利益：サービスの改善、セキュリティの確保などの当社の正当な利益のための処理</li>
+            <li className="mb-2">同意：マーケティング目的など、ユーザーの同意に基づく処理</li>
+          </ul>
+          
+          <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-3">国際的なデータ移転</h3>
+          <p className="text-gray-600 mb-4">
+            本サービスは日本を拠点として運営されており、個人データは主に日本国内のサーバーで処理されます。
+            ただし、サービス提供のため、適切な保護措置を講じた上で、日本国外にデータを移転する場合があります。
+          </p>
+
+          <h2 className="text-xl font-semibold text-gray-800 mt-8 mb-4">12. 子どものプライバシー</h2>
+          <p className="text-gray-600 mb-4">
+            本サービスは、18歳未満の方を対象としていません。18歳未満の方は、保護者の同意なく個人情報を提供しないでください。
+            当社が18歳未満の方から個人情報を収集したことが判明した場合、速やかに当該情報を削除します。
+          </p>
+
+          <h2 className="text-xl font-semibold text-gray-800 mt-8 mb-4">13. セキュリティ対策</h2>
+          <p className="text-gray-600 mb-4">
+            当社は、個人情報の漏洩、滅失、毀損を防止するため、以下のセキュリティ対策を実施しています：
+          </p>
+          <ul className="list-disc pl-6 mb-6 text-gray-600">
+            <li className="mb-2">SSL/TLS暗号化通信の使用</li>
+            <li className="mb-2">ファイアウォールによる不正アクセスの防止</li>
+            <li className="mb-2">定期的なセキュリティ監査の実施</li>
+            <li className="mb-2">従業員に対するセキュリティ教育の実施</li>
+            <li className="mb-2">アクセス権限の最小化原則の適用</li>
+            <li className="mb-2">定期的なバックアップとデータ復旧計画の策定</li>
+          </ul>
+
+          <h2 className="text-xl font-semibold text-gray-800 mt-8 mb-4">14. お問い合わせ窓口</h2>
+          <p className="text-gray-600 mb-4">
+            個人情報の取り扱いに関するお問い合わせ、開示・訂正・削除等の請求は、以下の窓口までご連絡ください。
+          </p>
+          <div className="bg-gray-50 p-6 rounded-lg mb-6">
+            <p className="text-gray-700 font-semibold mb-2">個人情報保護管理者</p>
+            <p className="text-gray-600">
+              株式会社TimeBid<br />
+              〒100-0001 東京都千代田区千代田1-1-1 TimeBidビル 10F<br />
+              Email: privacy@timebid.jp<br />
+              電話：03-1234-5678（平日9:00-18:00）
+            </p>
+          </div>
+
+          <h2 className="text-xl font-semibold text-gray-800 mt-8 mb-4">15. プライバシーポリシーの変更</h2>
           <p className="text-gray-600 mb-4">
             1. 本ポリシーの内容は、法令その他本ポリシーに別段の定めのある事項を除いて、ユーザーに通知することなく、変更することができるものとします。
           </p>
           <p className="text-gray-600 mb-4">
             2. 当社が別途定める場合を除いて、変更後のプライバシーポリシーは、本ウェブサイトに掲載したときから効力を生じるものとします。
           </p>
+          <p className="text-gray-600 mb-4">
+            3. 重要な変更を行う場合は、本サービス上での通知またはメールにてお知らせします。
+          </p>
 
-          <p className="text-gray-600 mt-8 mb-4">
-            本プライバシーポリシーは2025年6月4日に制定されました。
-          </p>
-          <p className="text-gray-600">
-            TimeBid運営事務局
-          </p>
+          <div className="mt-12 pt-8 border-t border-gray-200">
+            <p className="text-gray-600 mb-2">
+              本プライバシーポリシーは2025年6月4日に制定されました。
+            </p>
+            <p className="text-gray-600 mb-8">
+              最終改定日：2025年6月4日
+            </p>
+            <p className="text-gray-700 font-semibold">
+              株式会社TimeBid<br />
+              代表取締役 山田 太郎
+            </p>
+          </div>
         </div>
       </div>
     </div>
