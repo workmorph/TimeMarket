@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基本機能テスト - TimeBidウィジェット</title>
+  <style>
+    .test-status {
+      margin: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .test-item {
+      margin: 10px 0;
+      padding: 5px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    .pending { color: orange; }
+  </style>
+</head>
+<body>
+  <h1>基本機能テスト</h1>
+  
+  <div class="test-status">
+    <h2>テスト項目</h2>
+    <div class="test-item" id="widget-load">
+      <span class="pending">⏳</span> ウィジェット読み込み成功
+    </div>
+    <div class="test-item" id="init-error">
+      <span class="pending">⏳</span> 初期化エラーなし
+    </div>
+    <div class="test-item" id="api-auth">
+      <span class="pending">⏳</span> APIキー認証成功
+    </div>
+    <div class="test-item" id="auction-list">
+      <span class="pending">⏳</span> オークション一覧表示
+    </div>
+    <div class="test-item" id="bid-form">
+      <span class="pending">⏳</span> 入札フォーム表示
+    </div>
+  </div>
+
+  <div id="timebid-container"></div>
+
+  <script>
+    // テスト結果を更新する関数
+    function updateTestStatus(testId, status, message) {
+      const element = document.getElementById(testId);
+      const statusIcon = status === 'success' ? '✅' : status === 'error' ? '❌' : '⏳';
+      const statusClass = status;
+      element.innerHTML = `<span class="${statusClass}">${statusIcon}</span> ${element.textContent.substring(2)}${message ? ': ' + message : ''}`;
+    }
+
+    // ウィジェットロードテスト
+    const script = document.createElement('script');
+    script.src = 'https://cdn.timebid.com/widget/latest/timebid-widget.iife.js';
+    
+    script.onload = () => {
+      updateTestStatus('widget-load', 'success');
+      
+      try {
+        // ウィジェット初期化
+        const widget = window.TimeBid.createWidget({
+          apiKey: 'test_api_key_12345',
+          containerId: 'timebid-container',
+          theme: {
+            primaryColor: '#3498db',
+            borderRadius: '8px'
+          },
+          onInit: () => {
+            updateTestStatus('init-error', 'success');
+          },
+          onAuthSuccess: () => {
+            updateTestStatus('api-auth', 'success');
+          },
+          onAuctionListLoad: () => {
+            updateTestStatus('auction-list', 'success');
+          },
+          onBidFormReady: () => {
+            updateTestStatus('bid-form', 'success');
+          },
+          onError: (error) => {
+            console.error('Widget error:', error);
+            if (error.type === 'AUTH_ERROR') {
+              updateTestStatus('api-auth', 'error', error.message);
+            }
+          }
+        });
+      } catch (error) {
+        updateTestStatus('init-error', 'error', error.message);
+      }
+    };
+    
+    script.onerror = () => {
+      updateTestStatus('widget-load', 'error', 'スクリプト読み込み失敗');
+    };
+    
+    document.head.appendChild(script);
+  </script>
+</body>
+</html>
