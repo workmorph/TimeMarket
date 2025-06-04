@@ -63,10 +63,17 @@ export function CheckoutForm({
 
       // セッション情報をローカルストレージに保存（成功ページで使用）
       if (data.session_id) {
-        localStorage.setItem('checkout_session_id', data.session_id)
-        localStorage.setItem('checkout_amount', data.amount?.toString() || '')
-        localStorage.setItem('checkout_auction_id', auctionId)
-        localStorage.setItem('checkout_auction_title', auctionTitle)
+        const paymentDetails = {
+          amount: data.amount || bidAmount,
+          platformFee: data.platform_fee || platformFee,
+          sellerAmount: data.seller_amount || (bidAmount - platformFee),
+          auctionTitle: auctionTitle,
+          bidderName: 'You', // ユーザー名は成功ページで取得
+          sellerName: sellerName || 'ホスト',
+        }
+        
+        // セッションIDをキーとして保存
+        localStorage.setItem(`payment_${data.session_id}`, JSON.stringify(paymentDetails))
       }
       
       // Stripeのチェックアウトページにリダイレクト
