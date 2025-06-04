@@ -1,19 +1,27 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { mockSupabaseClient } from './supabase/mock-client'
+import { createClient as createServerClient } from './supabase/server'
 
 // 環境変数からSupabaseの設定を取得
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// 環境変数が設定されていない場合のエラーハンドリング
+// Supabaseクライアントの作成
+let supabaseClient;
+
+// 環境変数が設定されていない場合はモッククライアントを使用
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase環境変数が設定されていません。.env.localファイルを確認してください。')
+  console.warn('Supabase環境変数が設定されていません。モッククライアントを使用します。')
+  supabaseClient = mockSupabaseClient
+} else {
+  // 環境変数が設定されている場合は実際のSupabaseクライアントを作成
+  supabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey)
 }
 
-// Supabaseクライアントの作成
-export const supabase = createClient(
-  supabaseUrl || '',
-  supabaseAnonKey || ''
-)
+export const supabase = supabaseClient
+
+// サーバーサイドのクライアント作成関数をエクスポート
+export { createServerClient as createClient }
 
 // 型定義
 export type Profile = {
