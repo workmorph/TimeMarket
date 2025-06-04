@@ -9,6 +9,49 @@ export function useRealtimeAuction(auctionId: string) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
+  // オークション情報を取得
+  const fetchAuction = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('auctions')
+        .select('*, expert:profiles(*)')
+        .eq('id', auctionId)
+        .single()
+        
+      if (error) throw error
+      setAuction(data as Auction)
+    } catch (err: any) {
+      console.error('オークション取得エラー:', err)
+      setError(err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+  // 入札履歴を取得
+  const fetchBids = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bids')
+        .select('*, bidder:profiles(display_name)')
+        .eq('auction_id', auctionId)
+        .order('created_at', { ascending: false })
+        
+      if (error) throw error
+      
+      // bidder_nameを追加
+      const bidsWithNames = data.map(bid => ({
+        ...bid,
+        bidder_name: bid.bidder?.display_name || '匿名ユーザー'
+      }))
+      
+      setBids(bidsWithNames as Bid[])
+    } catch (err: any) {
+      console.error('入札履歴取得エラー:', err)
+      setError(err.message)
+    }
+  }
+  
   useEffect(() => {
     // オークション情報と入札履歴を取得
     fetchAuction()
@@ -48,50 +91,7 @@ export function useRealtimeAuction(auctionId: string) {
       supabase.removeChannel(auctionSubscription)
       supabase.removeChannel(bidSubscription)
     }
-  }, [auctionId])
-  
-  // オークション情報を取得
-  async function fetchAuction() {
-    try {
-      const { data, error } = await supabase
-        .from('auctions')
-        .select('*, expert:profiles(*)')
-        .eq('id', auctionId)
-        .single()
-        
-      if (error) throw error
-      setAuction(data as Auction)
-    } catch (err: any) {
-      console.error('オークション取得エラー:', err)
-      setError(err.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-  
-  // 入札履歴を取得
-  async function fetchBids() {
-    try {
-      const { data, error } = await supabase
-        .from('bids')
-        .select('*, bidder:profiles(display_name)')
-        .eq('auction_id', auctionId)
-        .order('created_at', { ascending: false })
-        
-      if (error) throw error
-      
-      // bidder_nameを追加
-      const bidsWithNames = data.map(bid => ({
-        ...bid,
-        bidder_name: bid.bidder?.display_name || '匿名ユーザー'
-      }))
-      
-      setBids(bidsWithNames as Bid[])
-    } catch (err: any) {
-      console.error('入札履歴取得エラー:', err)
-      setError(err.message)
-    }
-  }
+  }, [auctionId, fetchAuction, fetchBids])
   
   // 入札を行う関数
   async function placeBid(amount: number, bidderId: string) {
