@@ -1,29 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { createClient } from '@/lib/supabase/server'
-import { getStripe } from '@/lib/stripe/client'
 import Stripe from 'stripe'
 
 // Stripe署名検証用のシークレット
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
 
+// Stripeインスタンスの初期化
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2023-10-16',
+})
+
 export async function POST(request: NextRequest) {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createRouteHandlerClient({ cookies })
   
   // Stripeが無効の場合は処理しない
   if (process.env.STRIPE_ACCOUNT_ACTIVE === 'false') {
     console.warn('Stripe account is not active. Webhook ignored.')
     return NextResponse.json({ received: true })
-  }
-  
-  const stripe = getStripe()
-  if (!stripe) {
-    console.error('Stripe client not available')
-    return NextResponse.json(
-      { error: 'Stripe client not available' },
-      { status: 500 }
-    )
   }
   
   const sig = request.headers.get('stripe-signature')
@@ -50,6 +44,11 @@ export async function POST(request: NextRequest) {
     
     // イベントタイプに応じた処理
     switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object as Stripe.Checkout.Session
+        await handleCheckoutSessionCompleted(session, supabase)
+        break
+        
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as Stripe.PaymentIntent
         await handlePaymentIntentSucceeded(paymentIntent, supabase)
@@ -75,29 +74,144 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// 支払い成功時の処理
+// チェックアウトセッション完了時の処理（最も重要）
+async function handleCheckoutSessionCompleted(
+  session: Stripe.Checkout.Session,
+  supabase: any
+) {
+  const {
+    auctionId,
+    bidderId,
+    bidderName,
+    bidderEmail,
+    sellerId,
+    sellerName,
+    bidAmount,
+    platformFee,
+    sellerAmount,
+    auctionTitle,
+  } = session.metadata || {}
+  
+  if (!auctionId || !bidderId || !bidAmount) {
+    console.error('Missing metadata in checkout session', session.id)
+    return
+  }
+  
+  try {
+    // 入札情報を更新
+    const { error: updateError } = await supabase
+      .from('bids')
+      .update({
+        payment_status: 'succeeded',
+        payment_intent: session.payment_intent,
+        updated_at: new Date().toISOString()
+      })
+      .eq('payment_session_id', session.id)
+    
+    if (updateError) {
+      console.error('Failed to update bid:', updateError)
+      throw updateError
+    }
+    
+    // 注文（order）を作成
+    const { error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        buyer_id: bidderId,
+        seller_id: sellerId,
+        auction_id: auctionId,
+        amount: parseInt(bidAmount),
+        platform_fee: parseInt(platformFee),
+        seller_amount: parseInt(sellerAmount),
+        payment_session_id: session.id,
+        payment_intent_id: session.payment_intent as string,
+        status: 'pending_meeting',
+        metadata: {
+          auction_title: auctionTitle,
+          bidder_name: bidderName,
+          bidder_email: bidderEmail,
+          seller_name: sellerName,
+          stripe_session: session.id,
+        }
+      })
+    
+    if (orderError) {
+      console.error('Failed to create order:', orderError)
+      // エラーがあっても続行（監査ログ記録のため）
+    }
+    
+    // オークションの状態を更新
+    const { error: auctionError } = await supabase
+      .from('auctions')
+      .update({
+        status: 'completed',
+        winner_id: bidderId,
+        final_price: parseInt(bidAmount),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', auctionId)
+    
+    if (auctionError) {
+      console.error('Failed to update auction:', auctionError)
+    }
+    
+    // 監査ログを記録
+    await supabase.from('activity_logs').insert({
+      user_id: bidderId,
+      action_type: 'payment_completed',
+      resource_type: 'auction',
+      resource_id: auctionId,
+      metadata: {
+        session_id: session.id,
+        payment_intent: session.payment_intent,
+        amount: bidAmount,
+        platform_fee: platformFee,
+        seller_amount: sellerAmount,
+      }
+    }).catch(error => {
+      console.warn('活動ログの記録に失敗:', error)
+    })
+    
+    console.log(`Checkout session completed: ${session.id}`)
+    
+    // TODO: メール通知の送信
+    // - 落札者への確認メール
+    // - 出品者への通知メール
+    
+  } catch (error) {
+    console.error('Failed to handle checkout session:', error)
+    throw error
+  }
+}
+
+// 支払い成功時の処理（Webhookが重複して呼ばれる場合のバックアップ）
 async function handlePaymentIntentSucceeded(
   paymentIntent: Stripe.PaymentIntent,
   supabase: any
 ) {
-  const { auction_id, user_id } = paymentIntent.metadata || {}
+  const { auctionId, bidderId } = paymentIntent.metadata || {}
   
-  if (!auction_id || !user_id) {
+  if (!auctionId || !bidderId) {
     console.error('Missing metadata in payment intent', paymentIntent.id)
     return
   }
   
   try {
     // 入札情報を更新
-    await supabase
+    const { error } = await supabase
       .from('bids')
       .update({
         payment_status: 'succeeded',
+        payment_intent: paymentIntent.id,
         updated_at: new Date().toISOString()
       })
-      .eq('payment_intent_id', paymentIntent.id)
+      .eq('payment_intent', paymentIntent.id)
     
-    console.log(`Payment succeeded for bid: ${paymentIntent.id}`)
+    if (error) {
+      console.error('Failed to update bid:', error)
+    }
+    
+    console.log(`Payment intent succeeded: ${paymentIntent.id}`)
   } catch (error) {
     console.error('Failed to update bid payment status:', error)
   }
@@ -108,62 +222,43 @@ async function handlePaymentIntentFailed(
   paymentIntent: Stripe.PaymentIntent,
   supabase: any
 ) {
-  const { auction_id, user_id } = paymentIntent.metadata || {}
+  const { auctionId, bidderId } = paymentIntent.metadata || {}
   
-  if (!auction_id || !user_id) {
+  if (!auctionId || !bidderId) {
     console.error('Missing metadata in payment intent', paymentIntent.id)
     return
   }
   
   try {
     // 入札情報を更新
-    await supabase
+    const { error } = await supabase
       .from('bids')
       .update({
         payment_status: 'failed',
         updated_at: new Date().toISOString()
       })
-      .eq('payment_intent_id', paymentIntent.id)
+      .eq('payment_intent', paymentIntent.id)
+    
+    if (error) {
+      console.error('Failed to update bid:', error)
+    }
     
     console.log(`Payment failed for bid: ${paymentIntent.id}`)
     
-    // 最高入札額を再計算
-    const { data: highestBid } = await supabase
-      .from('bids')
-      .select('amount')
-      .eq('auction_id', auction_id)
-      .eq('payment_status', 'succeeded')
-      .order('amount', { ascending: false })
-      .limit(1)
-      .single()
-    
-    // オークションの現在価格を更新
-    if (highestBid) {
-      await supabase
-        .from('auctions')
-        .update({
-          current_price: highestBid.amount,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', auction_id)
-    } else {
-      // 有効な入札がない場合は開始価格に戻す
-      const { data: auction } = await supabase
-        .from('auctions')
-        .select('starting_price')
-        .eq('id', auction_id)
-        .single()
-      
-      if (auction) {
-        await supabase
-          .from('auctions')
-          .update({
-            current_price: auction.starting_price,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', auction_id)
+    // 監査ログを記録
+    await supabase.from('activity_logs').insert({
+      user_id: bidderId,
+      action_type: 'payment_failed',
+      resource_type: 'auction',
+      resource_id: auctionId,
+      metadata: {
+        payment_intent: paymentIntent.id,
+        failure_code: paymentIntent.last_payment_error?.code,
+        failure_message: paymentIntent.last_payment_error?.message,
       }
-    }
+    }).catch(err => {
+      console.warn('活動ログの記録に失敗:', err)
+    })
   } catch (error) {
     console.error('Failed to handle payment failure:', error)
   }

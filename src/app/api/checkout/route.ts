@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createClient } from '@/lib/supabase/server';
-import { getServerSession } from '@/lib/auth/session';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { formatCurrency } from '@/lib/utils';
 
 // Stripeインスタンスの初期化
@@ -21,9 +21,11 @@ function calculateFees(amount: number) {
 
 export async function POST(req: NextRequest) {
   try {
-    // セッションからユーザー情報を取得
-    const session = await getServerSession();
-    if (!session?.user) {
+    // Supabaseクライアントの初期化と認証チェック
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
       return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
     }
 
@@ -45,8 +47,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Supabaseクライアントの初期化
-    const supabase = createClient();
+    // 最大入札額の制限（10億円）
+    const MAX_BID_AMOUNT = 1000000000;
+    if (bidAmount > MAX_BID_AMOUNT) {
+      return NextResponse.json(
+        { error: `入札金額は${formatCurrency(MAX_BID_AMOUNT)}を超えることはできません` },
+        { status: 400 }
+      );
+    }
 
     // オークション情報の取得
     const { data: auction, error: auctionError } = await supabase
@@ -63,9 +71,17 @@ export async function POST(req: NextRequest) {
     }
 
     // 落札者が自分自身のオークションに入札していないかチェック
-    if (auction.user_id === session.user.id) {
+    if (auction.user_id === user.id) {
       return NextResponse.json(
         { error: '自分のオークションには入札できません' },
+        { status: 400 }
+      );
+    }
+
+    // オークションステータスチェック
+    if (auction.status !== 'active') {
+      return NextResponse.json(
+        { error: 'このオークションは現在入札を受け付けていません' },
         { status: 400 }
       );
     }
@@ -107,8 +123,9 @@ export async function POST(req: NextRequest) {
       cancel_url: cancelUrl,
       metadata: {
         auctionId,
-        bidderId: session.user.id,
-        bidderName: session.user.name || session.user.email?.split('@')[0] || 'ユーザー',
+        bidderId: user.id,
+        bidderName: user.user_metadata?.name || user.email?.split('@')[0] || 'ユーザー',
+        bidderEmail: user.email || '',
         sellerId: auction.user_id,
         sellerName: auction.user?.name || 'ホスト',
         bidAmount: bidAmount.toString(),
@@ -116,16 +133,17 @@ export async function POST(req: NextRequest) {
         sellerAmount: sellerAmount.toString(),
         auctionTitle: auction.title,
         createdAt: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
       },
-      customer_email: session.user.email,
+      customer_email: user.email,
       allow_promotion_codes: true,
     });
 
     // 入札情報をデータベースに保存（支払い前の状態）
     const { error: bidError } = await supabase.from('bids').insert({
       auction_id: auctionId,
-      user_id: session.user.id,
-      bidder_name: session.user.name || session.user.email?.split('@')[0] || 'ユーザー',
+      user_id: user.id,
+      bidder_name: user.user_metadata?.name || user.email?.split('@')[0] || 'ユーザー',
       amount: bidAmount,
       payment_intent: checkoutSession.payment_intent as string,
       payment_session_id: checkoutSession.id,
@@ -139,7 +157,7 @@ export async function POST(req: NextRequest) {
       // エラーログを詳細に記録
       console.error('入札データ:', {
         auction_id: auctionId,
-        user_id: session.user.id,
+        user_id: user.id,
         amount: bidAmount,
         payment_intent: checkoutSession.payment_intent,
       });
@@ -148,7 +166,7 @@ export async function POST(req: NextRequest) {
     
     // 監査ログを記録
     await supabase.from('activity_logs').insert({
-      user_id: session.user.id,
+      user_id: user.id,
       action_type: 'checkout_initiated',
       resource_type: 'auction',
       resource_id: auctionId,
@@ -156,6 +174,8 @@ export async function POST(req: NextRequest) {
         bid_amount: bidAmount,
         session_id: checkoutSession.id,
         payment_intent: checkoutSession.payment_intent,
+        platform_fee: platformFee,
+        seller_amount: sellerAmount,
       }
     }).catch(error => {
       // ログ記録のエラーは無視（メイン処理に影響させない）
