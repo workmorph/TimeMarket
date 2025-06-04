@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, AccessibleDialogContent } from "@/components/ui/accessible-dialog"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
@@ -393,84 +393,83 @@ export default function ApiKeysPage() {
       
       {/* 新しいAPIキーの表示ダイアログ */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[90vw] sm:max-w-md border-0 shadow-xl">
-          <div className="bg-green-50 p-4 rounded-t-lg border-b-4 border-green-500">
-            <DialogHeader>
+        <AccessibleDialogContent 
+          title="APIキーが作成されました"
+          description="このAPIキーは一度だけ表示されます。安全に保管してください。"
+          className="max-w-[90vw] sm:max-w-md border-0 shadow-xl"
+          footer={
+            <div className="bg-gray-50 w-full px-4 sm:px-6 py-4 border-t border-gray-100">
+              <Button 
+                onClick={() => setIsDialogOpen(false)}
+                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 h-auto shadow-sm transition-all duration-200"
+              >
+                理解しました、閉じる
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-6">
+            <div className="bg-green-50 p-4 rounded-lg border-b-4 border-green-500">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-full bg-white shadow-sm border border-green-100">
                   <Key className="h-6 w-6 text-green-600" />
                 </div>
-                <div>
-                  <DialogTitle className="text-xl font-bold text-green-800">APIキーが作成されました</DialogTitle>
-                  <DialogDescription className="text-green-700">
-                    このAPIキーは一度だけ表示されます。安全に保管してください。
-                  </DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
-          </div>
-          
-          {newKey && (
-            <div className="px-6 py-5">
-              <div className="mb-5">
-                <Label htmlFor="api-key" className="font-semibold text-gray-800 mb-2 block flex items-center">
-                  <Clipboard className="h-4 w-4 mr-2 text-blue-600" />
-                  ウィジェット埋め込み用APIキー
-                </Label>
-                <div className="bg-amber-50 border border-amber-100 rounded-md p-3 sm:p-4 mb-4 relative font-mono text-sm">
-                  <p className="break-all pr-10 select-all">{newKey}</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-2.5 right-2.5 h-8 w-8 p-0 hover:bg-gray-100"
-                    onClick={() => copyToClipboard(newKey)}
-                    aria-label="クリップボードにコピー"
-                  >
-                    {copied ? 
-                      <div className="bg-green-100 text-green-700 rounded-full p-1.5 shadow-sm">
-                        <Check className="h-4 w-4" />
-                      </div> : 
-                      <div className="text-gray-500 hover:text-gray-700">
-                        <Copy className="h-4 w-4" />
-                      </div>}
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="bg-amber-50 p-3 sm:p-4 rounded-md border-l-4 border-amber-500 border-t border-r border-b border-amber-100 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                  <div className="flex items-start">
-                    <AlertTriangle className="h-5 w-5 text-amber-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-amber-800">重要なセキュリティ情報</h4>
-                      <p className="text-sm text-amber-700">
-                        このキーはセキュリティ上の理由から二度と表示されません。必ず今コピーして安全な場所に保管してください。
-                      </p>
-                      <p className="text-sm text-amber-700">
-                        このキーが漏洩した場合は、すぐに無効化して新しいキーを作成してください。
-                      </p>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={() => setIsDialogOpen(false)}
-                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 h-auto shadow-sm transition-all duration-200"
-                  >
-                    理解しました、閉じる
-                  </Button>
-                </div>
               </div>
             </div>
-          )}
-          
-          <DialogFooter className="bg-gray-50 px-4 sm:px-6 py-4 border-t border-gray-100">
-            <Button 
-              onClick={() => setIsDialogOpen(false)}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 h-auto shadow-sm transition-all duration-200"
-            >
-              理解しました、閉じる
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+            
+            {newKey && (
+              <div className="px-4 py-3">
+                <div className="mb-5">
+                  <Label htmlFor="api-key" className="font-semibold text-gray-800 mb-2 block flex items-center">
+                    <Clipboard className="h-4 w-4 mr-2 text-blue-600" />
+                    ウィジェット埋め込み用APIキー
+                  </Label>
+                  <div className="bg-amber-50 border border-amber-100 rounded-md p-3 sm:p-4 mb-4 relative font-mono text-sm">
+                    <p className="break-all pr-10 select-all">{newKey}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2.5 right-2.5 h-8 w-8 p-0 hover:bg-gray-100"
+                      onClick={() => copyToClipboard(newKey)}
+                      aria-label="クリップボードにコピー"
+                    >
+                      {copied ? 
+                        <div className="bg-green-100 text-green-700 rounded-full p-1.5 shadow-sm">
+                          <Check className="h-4 w-4" />
+                        </div> : 
+                        <div className="text-gray-500 hover:text-gray-700">
+                          <Copy className="h-4 w-4" />
+                        </div>}
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="bg-amber-50 p-3 sm:p-4 rounded-md border-l-4 border-amber-500 border-t border-r border-b border-amber-100 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                    <div className="flex items-start">
+                      <AlertTriangle className="h-5 w-5 text-amber-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-amber-800">重要なセキュリティ情報</h4>
+                        <p className="text-sm text-amber-700">
+                          このキーはセキュリティ上の理由から二度と表示されません。必ず今コピーして安全な場所に保管してください。
+                        </p>
+                        <p className="text-sm text-amber-700">
+                          このキーが漏洩した場合は、すぐに無効化して新しいキーを作成してください。
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => setIsDialogOpen(false)}
+                      className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 h-auto shadow-sm transition-all duration-200"
+                    >
+                      理解しました、閉じる
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </AccessibleDialogContent>
       </Dialog>
     </div>
   )

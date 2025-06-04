@@ -21,12 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {
   Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  AccessibleDialogContent,
+} from "@/components/ui/accessible-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
@@ -120,7 +116,13 @@ export function ApiKeyManagement({
     }
   }
 
-  const getPermissionsDisplay = (permissions: any) => {
+  interface KeyPermissions {
+    read?: boolean;
+    write?: boolean;
+    delete?: boolean;
+  }
+
+  const getPermissionsDisplay = (permissions: KeyPermissions | null | undefined) => {
     if (!permissions || Object.keys(permissions).length === 0) {
       return '標準権限'
     }
@@ -286,38 +288,51 @@ export function ApiKeyManagement({
 
       {/* 削除確認ダイアログ */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              APIキーの無効化
-            </DialogTitle>
-            <DialogDescription>
+        <AccessibleDialogContent
+          title="APIキーの無効化"
+          description={
+            <>
               <strong>{selectedKey?.name}</strong> を無効化しますか？
               この操作は取り消せません。無効化されたAPIキーは使用できなくなります。
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              キャンセル
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              無効化する
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+            </>
+          }
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                キャンセル
+              </Button>
+              <Button variant="destructive" onClick={confirmDelete}>
+                無効化する
+              </Button>
+            </>
+          }
+        >
+          <div className="flex items-center justify-center p-2">
+            <AlertTriangle className="h-10 w-10 text-amber-500" />
+          </div>
+        </AccessibleDialogContent>
       </Dialog>
 
       {/* 編集ダイアログ（将来の拡張用） */}
       {onUpdateKey && (
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>APIキーの編集</DialogTitle>
-              <DialogDescription>
-                APIキーの設定を変更します
-              </DialogDescription>
-            </DialogHeader>
+          <AccessibleDialogContent
+            title="APIキーの編集"
+            description="APIキーの設定を変更します"
+            footer={
+              <>
+                <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                  キャンセル
+                </Button>
+                <Button onClick={() => {
+                  // TODO: 実装
+                  setShowEditDialog(false)
+                }}>
+                  保存
+                </Button>
+              </>
+            }
+          >
             <div className="space-y-4">
               <div>
                 <Label htmlFor="edit-name">名前</Label>
@@ -336,18 +351,7 @@ export function ApiKeyManagement({
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-                キャンセル
-              </Button>
-              <Button onClick={() => {
-                // TODO: 実装
-                setShowEditDialog(false)
-              }}>
-                保存
-              </Button>
-            </DialogFooter>
-          </DialogContent>
+          </AccessibleDialogContent>
         </Dialog>
       )}
     </>
