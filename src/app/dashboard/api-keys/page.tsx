@@ -3,16 +3,15 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertOctagon, AlertTriangle, Check, Clock, Copy, ExternalLink, Key, Trash2, Clipboard } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { AlertOctagon, AlertTriangle, Check, Copy, ExternalLink, Key, Clipboard, Plus, BookOpen } from "lucide-react"
 import { ApiKey } from '@/models/ApiKey'
+import { ApiKeyManagement } from '@/components/dashboard/ApiKeyManagement'
+import { ApiKeyCreateForm, ApiKeyFormData } from '@/components/forms/ApiKeyCreateForm'
 
 export default function ApiKeysPage() {
   const { user, isLoading: authLoading } = useAuth()
@@ -20,12 +19,12 @@ export default function ApiKeysPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [newKeyName, setNewKeyName] = useState('')
-  const [newKeyOrigins, setNewKeyOrigins] = useState('')
+  const [showCreateForm, setShowCreateForm] = useState(false)
   const [newKey, setNewKey] = useState<string | null>(null)
   const [isCreatingKey, setIsCreatingKey] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [activeTab, setActiveTab] = useState('overview')
   
   // 認証チェック
   useEffect(() => {
@@ -62,29 +61,18 @@ export default function ApiKeysPage() {
   }, [user])
   
   // 新しいAPIキーの作成
-  const handleCreateApiKey = async () => {
+  const handleCreateApiKey = async (formData: ApiKeyFormData) => {
     try {
       setIsCreatingKey(true)
       setError(null)
       
-      if (!newKeyName.trim()) {
-        setError('APIキー名を入力してください')
-        return
-      }
-      
-      const payload: {
-        name: string;
-        allowed_origins?: string[];
-      } = {
-        name: newKeyName.trim()
-      }
-      
-      // オリジンの追加（カンマ区切りで複数指定可能）
-      if (newKeyOrigins.trim()) {
-        payload.allowed_origins = newKeyOrigins
-          .split(',')
-          .map(origin => origin.trim())
-          .filter(origin => origin.length > 0)
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        permissions: formData.permissions,
+        allowed_origins: formData.allowed_origins,
+        rate_limit: formData.rate_limit,
+        expires_at: formData.expires_at || null
       }
       
       const response = await fetch('/api/api-keys', {
@@ -108,11 +96,8 @@ export default function ApiKeysPage() {
       // APIキーリストを更新
       setApiKeys(prev => [data.apiKey, ...prev])
       
-      // 入力フィールドをリセット
-      setNewKeyName('')
-      setNewKeyOrigins('')
-      
-      // ダイアログを開く
+      // フォームを閉じてダイアログを開く
+      setShowCreateForm(false)
       setIsDialogOpen(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : '不明なエラーが発生しました')
@@ -123,12 +108,7 @@ export default function ApiKeysPage() {
   
   // APIキーの無効化
   const handleDeactivateKey = async (keyId: string) => {
-    if (!confirm('このAPIキーを無効化しますか？この操作は元に戻せません。')) {
-      return
-    }
-    
     try {
-      setIsLoading(true)
       setError(null)
       
       const response = await fetch(`/api/api-keys?id=${keyId}`, {
@@ -146,8 +126,6 @@ export default function ApiKeysPage() {
       ))
     } catch (err) {
       setError(err instanceof Error ? err.message : '不明なエラーが発生しました')
-    } finally {
-      setIsLoading(false)
     }
   }
   
@@ -158,10 +136,10 @@ export default function ApiKeysPage() {
     setTimeout(() => setCopied(false), 2000)
   }
   
-  // 日付フォーマット
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '未設定'
-    return new Date(dateString).toLocaleString('ja-JP')
+  // APIキーの更新（将来の実装用）
+  const handleUpdateKey = async (keyId: string, updates: Partial<ApiKey>) => {
+    // TODO: APIエンドポイントが実装されたら有効化
+    console.log('Update key:', keyId, updates)
   }
   
   if (authLoading) {
@@ -181,228 +159,55 @@ export default function ApiKeysPage() {
           <h1 className="text-3xl font-bold">APIキー管理</h1>
           <p className="text-gray-500 mt-1">ウィジェット埋め込み用のAPIキーを管理します</p>
         </div>
+        {!showCreateForm && activeTab === 'overview' && (
+          <Button onClick={() => setShowCreateForm(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            新しいAPIキーを作成
+          </Button>
+        )}
       </div>
       
-      <Tabs defaultValue="keys">
+      {/* エラーメッセージ */}
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 border-t border-r border-b border-red-100 text-red-700 p-3 sm:p-4 rounded-md mb-6 text-sm shadow-sm">
+          <div className="flex items-start">
+            <AlertOctagon className="h-5 w-5 mr-3 text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold mb-1">エラーが発生しました</h4>
+              <p>{error}</p>
+              <p className="text-xs text-red-600 mt-2">
+                問題が解決しない場合は、サポートにお問い合わせください。
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
-          <TabsTrigger value="keys">APIキー</TabsTrigger>
-          <TabsTrigger value="docs">ドキュメント</TabsTrigger>
+          <TabsTrigger value="overview">概要</TabsTrigger>
+          <TabsTrigger value="docs">
+            <BookOpen className="h-4 w-4 mr-2" />
+            ドキュメント
+          </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="keys">
-          <div className="grid gap-6">
-            {/* 新しいAPIキーの作成 */}
-            <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="h-1 bg-blue-600"></div>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-blue-50">
-                    <Key className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <CardTitle>新しいAPIキーの作成</CardTitle>
-                    <CardDescription>
-                      外部サイトにTimeBidウィジェットを埋め込むためのAPIキーを作成します
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6 p-4 sm:p-6">
-                <div className="space-y-3">
-                  <Label htmlFor="key-name" className="text-sm font-semibold text-gray-700 flex items-center">
-                    <div className="h-1.5 w-1.5 bg-blue-600 rounded-full mr-2"></div>
-                    APIキー名 (必須)
-                  </Label>
-                  <Input
-                    id="key-name"
-                    placeholder="例: 会社ウェブサイト用"
-                    value={newKeyName}
-                    onChange={(e) => setNewKeyName(e.target.value)}
-                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md py-2 px-3 shadow-sm"
-                  />
-                  <p className="text-xs text-gray-500 pl-4">
-                    このAPIキーの用途を記述してください。例: 会社ウェブサイト用、テスト環境用など
-                  </p>
-                </div>
-                
-                <div className="space-y-3">
-                  <Label htmlFor="allowed-origins" className="text-sm font-semibold text-gray-700 flex items-center">
-                    <div className="h-1.5 w-1.5 bg-blue-600 rounded-full mr-2"></div>
-                    許可するオリジン (オプション)
-                  </Label>
-                  <Input
-                    id="allowed-origins"
-                    placeholder="例: https://example.com, https://sub.example.com"
-                    value={newKeyOrigins}
-                    onChange={(e) => setNewKeyOrigins(e.target.value)}
-                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md py-2 px-3 shadow-sm"
-                  />
-                  <div className="flex items-start p-2 sm:p-3 sm:pl-4 bg-amber-50 rounded-md border border-amber-100">
-                    <AlertTriangle className="h-4 w-4 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
-                    <div className="space-y-1">
-                      <p className="text-xs text-amber-700">
-                        カンマ区切りで複数指定できます。空白の場合はすべてのオリジンからのアクセスを許可します。
-                      </p>
-                      <p className="text-xs text-amber-700">
-                        セキュリティ上の理由から、本番環境では必ずオリジンを指定することを推奨します。
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-100">
-                <div className="w-full flex flex-col sm:flex-row sm:justify-between gap-4 items-center">
-                  <p className="text-xs sm:text-sm text-gray-500 flex items-center text-center sm:text-left">
-                    <AlertTriangle className="h-4 w-4 text-amber-500 mr-2" />
-                    作成したAPIキーは一度だけ表示されます
-                  </p>
-                  <Button 
-                    onClick={handleCreateApiKey} 
-                    disabled={isCreatingKey || !newKeyName.trim()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 h-auto font-medium shadow-sm transition-all duration-200 w-full sm:w-auto"
-                  >
-                    {isCreatingKey ? (
-                      <>
-                        <div className="animate-spin mr-2 h-5 w-5 border-2 border-b-transparent rounded-full"></div>
-                        作成中...
-                      </>
-                    ) : (
-                      <>
-                        <Key className="mr-2 h-5 w-5" />
-                        APIキーを作成
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-            
-            {/* エラーメッセージ */}
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 border-t border-r border-b border-red-100 text-red-700 p-3 sm:p-4 rounded-md mx-4 sm:mx-6 my-3 text-sm shadow-sm">
-                <div className="flex items-start">
-                  <AlertOctagon className="h-5 w-5 mr-3 text-red-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold mb-1">エラーが発生しました</h4>
-                    <p>{error}</p>
-                    <p className="text-xs text-red-600 mt-2">
-                      問題が解決しない場合は、サポートにお問い合わせください。
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* APIキーリスト */}
-            <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="h-1 bg-purple-600"></div>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-purple-50">
-                    <Clipboard className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <CardTitle>APIキー一覧</CardTitle>
-                    <CardDescription>
-                      作成したAPIキーの管理と無効化を行います
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                  </div>
-                ) : apiKeys.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="p-4 rounded-full bg-gray-100 mb-4">
-                      <Key className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <p className="text-lg font-medium text-gray-500 mb-1">
-                      APIキーがありません
-                    </p>
-                    <p className="text-sm text-muted-foreground max-w-md">
-                      上記フォームから新しいAPIキーを作成してください。
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-5">
-                    {apiKeys.map((key) => (
-                      <div key={key.id} className="bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-                        <div className="p-5">
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-3">
-                            <div className="flex items-center gap-3">
-                              <div className={`p-2.5 rounded-full ${key.is_active ? 'bg-green-50' : 'bg-gray-100'}`}>
-                                <Key className={`h-5 w-5 ${key.is_active ? 'text-green-600' : 'text-gray-400'}`} />
-                              </div>
-                              <div>
-                                <div className="font-semibold text-base sm:text-lg">{key.name}</div>
-                                <div className="text-sm text-muted-foreground flex items-center mt-0.5">
-                                  <span className="inline-flex items-center">
-                                    <Clock className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
-                                    作成日: {formatDate(key.created_at)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <Badge 
-                              variant={key.is_active ? "default" : "outline"} 
-                              className={`${key.is_active ? 'bg-green-100 text-green-800 hover:bg-green-100' : ''} px-3 py-1 text-xs font-medium rounded-full`}
-                            >
-                              {key.is_active ? "有効" : "無効"}
-                            </Badge>
-                          </div>
-                        </div>
-                        
-                        <Separator />
-                        
-                        <div className="p-5 bg-gray-50">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 text-sm">
-                            <div className="bg-white p-3 rounded-md border border-gray-100">
-                              <div className="text-gray-600 font-medium mb-2 flex items-center">
-                                <Clock className="h-4 w-4 mr-2 text-indigo-500" />
-                                最終使用日
-                              </div>
-                              <div className="font-medium pl-6">
-                                {key.last_used_at ? formatDate(key.last_used_at) : '未使用'}
-                              </div>
-                            </div>
-                            
-                            <div className="bg-white p-3 rounded-md border border-gray-100">
-                              <div className="text-gray-600 font-medium mb-2 flex items-center">
-                                <ExternalLink className="h-4 w-4 mr-2 text-indigo-500" />
-                                許可オリジン
-                              </div>
-                              <div className="font-medium pl-6 break-words">
-                                {key.allowed_origins && key.allowed_origins.length > 0 
-                                  ? key.allowed_origins.join(', ') 
-                                  : 'すべて許可'}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {key.is_active && (
-                            <div className="mt-4 sm:mt-5 flex justify-end">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDeactivateKey(key.id)}
-                                className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 font-medium"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                無効化
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+        <TabsContent value="overview">
+          {showCreateForm ? (
+            <ApiKeyCreateForm
+              onSubmit={handleCreateApiKey}
+              onCancel={() => setShowCreateForm(false)}
+              isLoading={isCreatingKey}
+            />
+          ) : (
+            <ApiKeyManagement
+              apiKeys={apiKeys}
+              onCreateKey={() => setShowCreateForm(true)}
+              onDeleteKey={handleDeactivateKey}
+              onUpdateKey={handleUpdateKey}
+              isLoading={isLoading}
+            />
+          )}
         </TabsContent>
         
         <TabsContent value="docs">
