@@ -1,236 +1,182 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Mail, MessageCircle, FileText, HelpCircle } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'ヘルプ・よくある質問 | TimeBid',
-  description: 'TimeBidのよくある質問と使い方ガイド。専門家の時間をオークション形式で取引するサービスの詳しい使い方、トラブルシューティング、お問い合わせ方法をご案内します。',
-  keywords: 'TimeBid, ヘルプ, FAQ, よくある質問, 使い方, トラブルシューティング, お問い合わせ',
-  openGraph: {
-    title: 'ヘルプ・よくある質問 | TimeBid',
-    description: 'TimeBidのよくある質問と使い方ガイド。サービスの詳しい使い方をご案内します。',
-    type: 'website'
-  }
+  title: 'ヘルプ | TimeBid',
+  description: 'TimeBidのヘルプページです。よくある質問や使い方ガイドをご確認いただけます。',
 }
 
 export default function HelpPage() {
   return (
     <div className="bg-white">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">ヘルプ・よくある質問</h1>
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">ヘルプセンター</h1>
         
-        <div className="prose prose-blue max-w-none">
-          {/* はじめに */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">TimeBidについて</h2>
-            <p className="text-gray-600 mb-4">
-              TimeBidは、専門家の時間をオークション形式で取引できる革新的なマーケットプレイスです。
-              専門知識を持つプロフェッショナルと、その知識を必要とする方々を効率的につなげます。
+        {/* 検索バー */}
+        <div className="mb-12">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="質問を検索..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button className="absolute right-3 top-3 text-blue-600">
+              検索
+            </button>
+          </div>
+        </div>
+
+        {/* カテゴリーセクション */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                  <HelpCircle className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">はじめての方へ</h3>
+                <p className="text-gray-600 mb-4">
+                  TimeBidの基本的な使い方や登録方法についてのガイドです。
+                </p>
+                <Button variant="outline" className="mt-2">
+                  詳細を見る
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                  <FileText className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">専門家ガイド</h3>
+                <p className="text-gray-600 mb-4">
+                  専門家として登録し、オークションを開始するための詳細ガイドです。
+                </p>
+                <Button variant="outline" className="mt-2">
+                  詳細を見る
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                  <MessageCircle className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">クライアントガイド</h3>
+                <p className="text-gray-600 mb-4">
+                  オークションへの入札方法や専門家とのセッション実施方法を解説します。
+                </p>
+                <Button variant="outline" className="mt-2">
+                  詳細を見る
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* よくある質問 */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">よくある質問</h2>
+          
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger className="text-lg font-medium text-left">
+                TimeBidとは何ですか？
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-600">
+                TimeBidは、専門家の時間をオークション形式で取引するプラットフォームです。専門家は自分の空き時間を出品し、クライアントはその時間に対して入札を行います。最高入札者が専門家の時間を獲得し、オンラインでのコンサルテーションやアドバイスを受けることができます。
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-2">
+              <AccordionTrigger className="text-lg font-medium text-left">
+                専門家として登録するにはどうすればよいですか？
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-600">
+                専門家として登録するには、まず会員登録を行い、プロフィールページから「専門家登録」を選択します。専門分野、経験、資格などの情報を入力し、審査に通過すると専門家として活動を開始できます。審査には通常1〜3営業日かかります。
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-3">
+              <AccordionTrigger className="text-lg font-medium text-left">
+                オークションの開始価格はどのように設定すればよいですか？
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-600">
+                開始価格は専門家が自由に設定できます。ただし、あまりに高すぎる開始価格は入札者が少なくなる可能性があります。初めは市場相場よりやや低めに設定し、評価が高まるにつれて徐々に上げていくことをお勧めします。また、AIによる価格提案機能もご利用いただけます。
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-4">
+              <AccordionTrigger className="text-lg font-medium text-left">
+                入札後のキャンセルは可能ですか？
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-600">
+                オークション終了前であれば入札のキャンセルが可能です。ただし、オークション終了後に落札が確定した場合、原則としてキャンセルはできません。やむを得ない事情がある場合は、専門家との直接交渉またはカスタマーサポートにご相談ください。
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-5">
+              <AccordionTrigger className="text-lg font-medium text-left">
+                支払い方法にはどのようなものがありますか？
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-600">
+                クレジットカード（VISA、Mastercard、American Express、JCB）、PayPal、銀行振込に対応しています。落札後、選択した支払い方法で決済を行います。セッション実施後に専門家への支払いが行われます。
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-6">
+              <AccordionTrigger className="text-lg font-medium text-left">
+                セッションはどのように行われますか？
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-600">
+                セッションは主にビデオ会議ツールを使用してオンラインで行われます。TimeBidは独自のビデオ会議システムを提供していますが、専門家とクライアントの合意があれば、Zoom、Google Meet、Microsoft Teamsなどの外部ツールも利用可能です。
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-7">
+              <AccordionTrigger className="text-lg font-medium text-left">
+                手数料はいくらかかりますか？
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-600">
+                専門家には取引金額の15%、クライアントには5%の手数料がかかります。例えば、10,000円の取引の場合、クライアントは10,500円を支払い、専門家には8,500円が支払われます。詳細は料金ページをご確認ください。
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+
+        {/* お問い合わせセクション */}
+        <div className="bg-blue-50 rounded-lg p-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">お問い合わせ</h2>
+            <p className="text-gray-600 mb-6">
+              ご質問やお困りのことがございましたら、お気軽にお問い合わせください。
+              サポートチームが迅速に対応いたします。
             </p>
-          </section>
+            <Button className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              お問い合わせフォーム
+            </Button>
+          </div>
+        </div>
 
-          {/* 使い方ガイド */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">使い方ガイド</h2>
-            
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-3">クライアント（購入者）の方へ</h3>
-                <ol className="list-decimal pl-6 space-y-2 text-gray-600">
-                  <li>アカウント登録：メールアドレスとパスワードで簡単に登録できます</li>
-                  <li>専門家を探す：カテゴリーやキーワードで専門家を検索</li>
-                  <li>オークションに参加：希望する専門家の時間に入札</li>
-                  <li>落札・支払い：落札後、安全な決済システムで支払い</li>
-                  <li>サービスを受ける：専門家と日程を調整してサービスを受ける</li>
-                  <li>評価する：サービス完了後、専門家を評価</li>
-                </ol>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-3">専門家（出品者）の方へ</h3>
-                <ol className="list-decimal pl-6 space-y-2 text-gray-600">
-                  <li>専門家登録：プロフィールと専門分野を登録</li>
-                  <li>時間を出品：提供可能な時間枠と開始価格を設定</li>
-                  <li>オークション管理：入札状況を確認し、必要に応じて対応</li>
-                  <li>落札通知：落札されたら通知が届きます</li>
-                  <li>サービス提供：クライアントと調整してサービスを提供</li>
-                  <li>報酬受取：サービス完了後、手数料15%を差し引いた金額を受取</li>
-                </ol>
-              </div>
-            </div>
-          </section>
-
-          {/* よくある質問 */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">よくある質問（FAQ）</h2>
-            
-            <div className="space-y-6">
-              <details className="border-b border-gray-200 pb-6">
-                <summary className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-600">
-                  Q: TimeBidの手数料はいくらですか？
-                </summary>
-                <p className="mt-4 text-gray-600">
-                  A: 専門家の方から、落札金額の15%を手数料としていただいています。クライアントの方は、落札金額のみのお支払いとなります。
-                </p>
-              </details>
-
-              <details className="border-b border-gray-200 pb-6">
-                <summary className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-600">
-                  Q: キャンセルはできますか？
-                </summary>
-                <div className="mt-4 text-gray-600 space-y-2">
-                  <p>A: キャンセルポリシーは以下の通りです：</p>
-                  <ul className="list-disc pl-6">
-                    <li>サービス実施日の3日前まで：キャンセル料無料</li>
-                    <li>2日前から当日：落札金額の50%のキャンセル料</li>
-                    <li>専門家都合のキャンセル：全額返金</li>
-                  </ul>
-                </div>
-              </details>
-
-              <details className="border-b border-gray-200 pb-6">
-                <summary className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-600">
-                  Q: 支払い方法は何が使えますか？
-                </summary>
-                <p className="mt-4 text-gray-600">
-                  A: クレジットカード（Visa、Mastercard、American Express、JCB）および銀行振込がご利用いただけます。
-                  決済は安全性の高いStripeシステムを使用しています。
-                </p>
-              </details>
-
-              <details className="border-b border-gray-200 pb-6">
-                <summary className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-600">
-                  Q: 専門家になるには審査がありますか？
-                </summary>
-                <p className="mt-4 text-gray-600">
-                  A: はい、サービスの品質を保つため、専門家登録時には簡単な審査があります。
-                  専門分野での実績や資格などを確認させていただきます。審査は通常1-3営業日で完了します。
-                </p>
-              </details>
-
-              <details className="border-b border-gray-200 pb-6">
-                <summary className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-600">
-                  Q: オークションの期間はどのくらいですか？
-                </summary>
-                <p className="mt-4 text-gray-600">
-                  A: 専門家が出品時に1日から7日の間で自由に設定できます。期間終了時に最高額で入札している方が落札者となります。
-                </p>
-              </details>
-
-              <details className="border-b border-gray-200 pb-6">
-                <summary className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-600">
-                  Q: サービスに満足できなかった場合は？
-                </summary>
-                <p className="mt-4 text-gray-600">
-                  A: サービス内容が著しく契約内容と異なる場合は、返金申請が可能です。
-                  サービス完了後7日以内にカスタマーサポートまでご連絡ください。状況を確認の上、対応させていただきます。
-                </p>
-              </details>
-
-              <details className="border-b border-gray-200 pb-6">
-                <summary className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-600">
-                  Q: 複数の時間枠を同時に出品できますか？
-                </summary>
-                <p className="mt-4 text-gray-600">
-                  A: はい、専門家の方は複数の時間枠を同時に出品することができます。
-                  ただし、スケジュールの重複にはご注意ください。
-                </p>
-              </details>
-
-              <details className="border-b border-gray-200 pb-6">
-                <summary className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-600">
-                  Q: 海外からも利用できますか？
-                </summary>
-                <p className="mt-4 text-gray-600">
-                  A: 現在、日本国内からのご利用のみ対応しております。
-                  今後、サービス対象地域の拡大を検討しています。
-                </p>
-              </details>
-            </div>
-          </section>
-
-          {/* トラブルシューティング */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">トラブルシューティング</h2>
-            
-            <div className="space-y-6">
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">ログインできない場合</h3>
-                <ul className="list-disc pl-6 space-y-2 text-gray-600">
-                  <li>パスワードをお忘れの場合は、ログインページの「パスワードを忘れた方」からリセットできます</li>
-                  <li>メールアドレスが正しく入力されているか確認してください</li>
-                  <li>ブラウザのキャッシュをクリアしてお試しください</li>
-                </ul>
-              </div>
-
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">入札ができない場合</h3>
-                <ul className="list-disc pl-6 space-y-2 text-gray-600">
-                  <li>ログイン状態を確認してください</li>
-                  <li>支払い方法が登録されているか確認してください</li>
-                  <li>現在の最高入札額以上の金額で入札してください</li>
-                </ul>
-              </div>
-
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">決済エラーが発生した場合</h3>
-                <ul className="list-disc pl-6 space-y-2 text-gray-600">
-                  <li>クレジットカード情報が正しく入力されているか確認してください</li>
-                  <li>カードの有効期限を確認してください</li>
-                  <li>利用限度額を超えていないか確認してください</li>
-                  <li>問題が解決しない場合は、別の支払い方法をお試しください</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* お問い合わせ */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">お問い合わせ</h2>
-            
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">カスタマーサポート</h3>
-              <div className="space-y-3 text-gray-600">
-                <p>ご不明な点やお困りのことがございましたら、お気軽にお問い合わせください。</p>
-                
-                <div className="space-y-2">
-                  <p><strong>メールでのお問い合わせ：</strong></p>
-                  <p className="pl-4">support@timebid.jp</p>
-                  <p className="pl-4 text-sm">（平日9:00-18:00、土日祝日を除く）</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <p><strong>お問い合わせフォーム：</strong></p>
-                  <p className="pl-4">
-                    <a href="/contact" className="text-blue-600 hover:underline">
-                      お問い合わせフォームはこちら
-                    </a>
-                  </p>
-                </div>
-                
-                <div className="mt-4 p-4 bg-white rounded">
-                  <p className="text-sm">
-                    <strong>営業時間：</strong>平日 9:00 - 18:00（土日祝日、年末年始を除く）<br />
-                    <strong>返信について：</strong>通常1-2営業日以内にご返信いたします
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* 関連リンク */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">関連リンク</h2>
-            <ul className="space-y-2 text-gray-600">
-              <li>
-                <a href="/terms" className="text-blue-600 hover:underline">利用規約</a>
-              </li>
-              <li>
-                <a href="/privacy" className="text-blue-600 hover:underline">プライバシーポリシー</a>
-              </li>
-              <li>
-                <a href="/about" className="text-blue-600 hover:underline">TimeBidについて</a>
-              </li>
-            </ul>
-          </section>
+        {/* 関連リンク */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">関連リンク</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Link href="/terms" className="text-blue-600 hover:underline">利用規約</Link>
+            <Link href="/privacy" className="text-blue-600 hover:underline">プライバシーポリシー</Link>
+            <Link href="/about" className="text-blue-600 hover:underline">会社概要</Link>
+          </div>
         </div>
       </div>
     </div>

@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getStripe } from '@/lib/stripe/client'
 import Stripe from 'stripe'
 
 // Stripe署名検証用のシークレット
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
 
-// Stripeインスタンスの初期化
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16',
-})
-
 export async function POST(request: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies })
-  
   // Stripeが無効の場合は処理しない
   if (process.env.STRIPE_ACCOUNT_ACTIVE === 'false') {
     console.warn('Stripe account is not active. Webhook ignored.')
     return NextResponse.json({ received: true })
+  }
+  
+  const stripe = getStripe()
+  if (!stripe) {
+    console.error('Stripe client not available')
+    return NextResponse.json(
+      { error: 'Stripe client not available' },
+      { status: 500 }
+    )
   }
   
   const sig = request.headers.get('stripe-signature')
@@ -44,19 +46,19 @@ export async function POST(request: NextRequest) {
     
     // イベントタイプに応じた処理
     switch (event.type) {
-      case 'checkout.session.completed':
-        const session = event.data.object as Stripe.Checkout.Session
-        await handleCheckoutSessionCompleted(session, supabase)
-        break
-        
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as Stripe.PaymentIntent
-        await handlePaymentIntentSucceeded(paymentIntent, supabase)
+        await handlePaymentIntentSucceeded(paymentIntent)
         break
       
       case 'payment_intent.payment_failed':
         const failedPayment = event.data.object as Stripe.PaymentIntent
-        await handlePaymentIntentFailed(failedPayment, supabase)
+        await handlePaymentIntentFailed(failedPayment)
+        break
+        
+      case 'checkout.session.completed':
+        const session = event.data.object as Stripe.Checkout.Session
+        await handleCheckoutSessionCompleted(session)
         break
       
       // その他のイベントタイプは今後必要に応じて追加
@@ -74,144 +76,52 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// チェックアウトセッション完了時の処理（最も重要）
-async function handleCheckoutSessionCompleted(
-  session: Stripe.Checkout.Session,
-  supabase: any
-) {
-  const {
-    auctionId,
-    bidderId,
-    bidderName,
-    bidderEmail,
-    sellerId,
-    sellerName,
-    bidAmount,
-    platformFee,
-    sellerAmount,
-    auctionTitle,
-  } = session.metadata || {}
-  
-  if (!auctionId || !bidderId || !bidAmount) {
-    console.error('Missing metadata in checkout session', session.id)
-    return
-  }
-  
-  try {
-    // 入札情報を更新
-    const { error: updateError } = await supabase
-      .from('bids')
-      .update({
-        payment_status: 'succeeded',
-        payment_intent: session.payment_intent,
-        updated_at: new Date().toISOString()
-      })
-      .eq('payment_session_id', session.id)
-    
-    if (updateError) {
-      console.error('Failed to update bid:', updateError)
-      throw updateError
-    }
-    
-    // 注文（order）を作成
-    const { error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        buyer_id: bidderId,
-        seller_id: sellerId,
-        auction_id: auctionId,
-        amount: parseInt(bidAmount),
-        platform_fee: parseInt(platformFee),
-        seller_amount: parseInt(sellerAmount),
-        payment_session_id: session.id,
-        payment_intent_id: session.payment_intent as string,
-        status: 'pending_meeting',
-        metadata: {
-          auction_title: auctionTitle,
-          bidder_name: bidderName,
-          bidder_email: bidderEmail,
-          seller_name: sellerName,
-          stripe_session: session.id,
-        }
-      })
-    
-    if (orderError) {
-      console.error('Failed to create order:', orderError)
-      // エラーがあっても続行（監査ログ記録のため）
-    }
-    
-    // オークションの状態を更新
-    const { error: auctionError } = await supabase
-      .from('auctions')
-      .update({
-        status: 'completed',
-        winner_id: bidderId,
-        final_price: parseInt(bidAmount),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', auctionId)
-    
-    if (auctionError) {
-      console.error('Failed to update auction:', auctionError)
-    }
-    
-    // 監査ログを記録
-    await supabase.from('activity_logs').insert({
-      user_id: bidderId,
-      action_type: 'payment_completed',
-      resource_type: 'auction',
-      resource_id: auctionId,
-      metadata: {
-        session_id: session.id,
-        payment_intent: session.payment_intent,
-        amount: bidAmount,
-        platform_fee: platformFee,
-        seller_amount: sellerAmount,
-      }
-    }).catch(error => {
-      console.warn('活動ログの記録に失敗:', error)
-    })
-    
-    console.log(`Checkout session completed: ${session.id}`)
-    
-    // TODO: メール通知の送信
-    // - 落札者への確認メール
-    // - 出品者への通知メール
-    
-  } catch (error) {
-    console.error('Failed to handle checkout session:', error)
-    throw error
-  }
-}
-
-// 支払い成功時の処理（Webhookが重複して呼ばれる場合のバックアップ）
+// 支払い成功時の処理
 async function handlePaymentIntentSucceeded(
-  paymentIntent: Stripe.PaymentIntent,
-  supabase: any
+  paymentIntent: Stripe.PaymentIntent
 ) {
-  const { auctionId, bidderId } = paymentIntent.metadata || {}
+  const { auction_id, user_id } = paymentIntent.metadata || {}
   
-  if (!auctionId || !bidderId) {
+  if (!auction_id || !user_id) {
     console.error('Missing metadata in payment intent', paymentIntent.id)
     return
   }
   
   try {
-    // 入札情報を更新
-    const { error } = await supabase
+    // 管理者権限でSupabaseクライアントを作成
+    const adminSupabase = createAdminClient()
+    
+    // トランザクション的に処理するために一連の操作を実行
+    const { error: bidError } = await adminSupabase
       .from('bids')
       .update({
         payment_status: 'succeeded',
-        payment_intent: paymentIntent.id,
         updated_at: new Date().toISOString()
       })
-      .eq('payment_intent', paymentIntent.id)
+      .eq('payment_intent_id', paymentIntent.id)
     
-    if (error) {
-      console.error('Failed to update bid:', error)
+    if (bidError) throw bidError
+    
+    // オークションの現在価格を更新
+    const { data: bid } = await adminSupabase
+      .from('bids')
+      .select('amount')
+      .eq('payment_intent_id', paymentIntent.id)
+      .single()
+    
+    if (bid) {
+      const { error: auctionError } = await adminSupabase
+        .from('auctions')
+        .update({
+          current_price: bid.amount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', auction_id)
+      
+      if (auctionError) throw auctionError
     }
     
-    console.log(`Payment intent succeeded: ${paymentIntent.id}`)
+    console.log(`Payment succeeded for bid: ${paymentIntent.id}, auction: ${auction_id}`)
   } catch (error) {
     console.error('Failed to update bid payment status:', error)
   }
@@ -219,47 +129,154 @@ async function handlePaymentIntentSucceeded(
 
 // 支払い失敗時の処理
 async function handlePaymentIntentFailed(
-  paymentIntent: Stripe.PaymentIntent,
-  supabase: any
+  paymentIntent: Stripe.PaymentIntent
 ) {
-  const { auctionId, bidderId } = paymentIntent.metadata || {}
+  const { auction_id, user_id } = paymentIntent.metadata || {}
   
-  if (!auctionId || !bidderId) {
+  if (!auction_id || !user_id) {
     console.error('Missing metadata in payment intent', paymentIntent.id)
     return
   }
   
   try {
+    // 管理者権限でSupabaseクライアントを作成
+    const adminSupabase = createAdminClient()
+    
     // 入札情報を更新
-    const { error } = await supabase
+    const { error: bidError } = await adminSupabase
       .from('bids')
       .update({
         payment_status: 'failed',
         updated_at: new Date().toISOString()
       })
-      .eq('payment_intent', paymentIntent.id)
+      .eq('payment_intent_id', paymentIntent.id)
     
-    if (error) {
-      console.error('Failed to update bid:', error)
-    }
+    if (bidError) throw bidError
     
     console.log(`Payment failed for bid: ${paymentIntent.id}`)
     
-    // 監査ログを記録
-    await supabase.from('activity_logs').insert({
-      user_id: bidderId,
-      action_type: 'payment_failed',
-      resource_type: 'auction',
-      resource_id: auctionId,
-      metadata: {
-        payment_intent: paymentIntent.id,
-        failure_code: paymentIntent.last_payment_error?.code,
-        failure_message: paymentIntent.last_payment_error?.message,
+    // 最高入札額を再計算
+    const { data: highestBid, error: bidQueryError } = await adminSupabase
+      .from('bids')
+      .select('amount')
+      .eq('auction_id', auction_id)
+      .eq('payment_status', 'succeeded')
+      .order('amount', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    
+    if (bidQueryError) throw bidQueryError
+    
+    // オークションの現在価格を更新
+    if (highestBid) {
+      const { error: updateError } = await adminSupabase
+        .from('auctions')
+        .update({
+          current_price: highestBid.amount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', auction_id)
+      
+      if (updateError) throw updateError
+    } else {
+      // 有効な入札がない場合は開始価格に戻す
+      const { data: auction, error: auctionError } = await adminSupabase
+        .from('auctions')
+        .select('starting_price')
+        .eq('id', auction_id)
+        .single()
+      
+      if (auctionError) throw auctionError
+      
+      if (auction) {
+        const { error: resetError } = await adminSupabase
+          .from('auctions')
+          .update({
+            current_price: auction.starting_price,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', auction_id)
+        
+        if (resetError) throw resetError
       }
-    }).catch(err => {
-      console.warn('活動ログの記録に失敗:', err)
-    })
+    }
   } catch (error) {
     console.error('Failed to handle payment failure:', error)
   }
-} 
+}
+
+// チェックアウトセッション完了時の処理
+async function handleCheckoutSessionCompleted(
+  session: Stripe.Checkout.Session
+) {
+  // メタデータから必要な情報を取得
+  const { auctionId, bidderId, sellerId, bidAmount, platformFee, sellerAmount } = session.metadata || {}
+  
+  if (!auctionId || !bidderId || !sellerId) {
+    console.error('Missing metadata in checkout session', session.id)
+    return
+  }
+  
+  try {
+    // 管理者権限でSupabaseクライアントを作成
+    const adminSupabase = createAdminClient()
+    
+    // 入札情報を更新
+    const { error: bidError } = await adminSupabase
+      .from('bids')
+      .update({
+        payment_status: 'succeeded',
+        payment_session_id: session.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('auction_id', auctionId)
+      .eq('user_id', bidderId)
+      .is('payment_status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(1)
+    
+    if (bidError) {
+      console.error('Failed to update bid with session ID:', bidError)
+      return
+    }
+    
+    // オークション情報を更新
+    const { error: auctionError } = await adminSupabase
+      .from('auctions')
+      .update({
+        current_price: parseInt(bidAmount || '0'),
+        highest_bidder_id: bidderId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', auctionId)
+    
+    if (auctionError) {
+      console.error('Failed to update auction with highest bid:', auctionError)
+      return
+    }
+    
+    // 支払い記録を作成
+    const { error: paymentError } = await adminSupabase
+      .from('payments')
+      .insert({
+        auction_id: auctionId,
+        user_id: bidderId,
+        seller_id: sellerId,
+        amount: parseInt(bidAmount || '0'),
+        platform_fee: parseInt(platformFee || '0'),
+        seller_amount: parseInt(sellerAmount || '0'),
+        payment_id: session.id,
+        payment_status: 'succeeded',
+        payment_method: 'stripe',
+      })
+    
+    if (paymentError) {
+      console.error('Failed to create payment record:', paymentError)
+      return
+    }
+    
+    console.log(`Checkout session completed: ${session.id}, auction: ${auctionId}`)
+  } catch (error) {
+    console.error('Failed to process checkout session completion:', error)
+  }
+}

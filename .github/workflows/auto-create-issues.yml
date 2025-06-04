@@ -1,0 +1,93 @@
+name: Auto Create Issues from Templates
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_issues:
+        description: 'Create issues from .github/ISSUES/ templates'
+        required: true
+        default: 'true'
+        type: boolean
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Create Issues from Templates
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚀 Creating issues from templates..."
+          
+          # Issue templates directory
+          ISSUE_DIR=".github/ISSUES"
+          
+          if [ ! -d "$ISSUE_DIR" ]; then
+            echo "❌ Issue templates directory not found"
+            exit 1
+          fi
+          
+          # Create issues from each template
+          for file in "$ISSUE_DIR"/*.md; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file" .md)
+              echo "📝 Processing: $filename"
+              
+              # Extract title, labels from frontmatter
+              title=$(grep -E "^title:" "$file" | sed 's/title: *//' | tr -d '"')
+              labels=$(grep -E "^labels:" "$file" | sed 's/labels: *//' | tr -d '"')
+              assignees=$(grep -E "^assignees:" "$file" | sed 's/assignees: *//' | tr -d '"')
+              
+              # Default values if not found
+              if [ -z "$title" ]; then
+                title="$filename"
+              fi
+              
+              if [ -z "$labels" ]; then
+                labels="auto-created"
+              fi
+              
+              # Read issue body (skip frontmatter)
+              body=$(awk '
+                BEGIN { in_frontmatter = 0; frontmatter_count = 0 }
+                /^---$/ { 
+                  in_frontmatter = !in_frontmatter; 
+                  frontmatter_count++; 
+                  next 
+                }
+                !in_frontmatter && frontmatter_count >= 2 { print }
+              ' "$file")
+              
+              # Create issue using GitHub CLI
+              if command -v gh &> /dev/null; then
+                echo "🎯 Creating issue: $title"
+                
+                # Prepare assignees parameter
+                assignee_param=""
+                if [ -n "$assignees" ] && [ "$assignees" != "''" ]; then
+                  assignee_param="--assignee $assignees"
+                fi
+                
+                # Create the issue
+                gh issue create \
+                  --title "$title" \
+                  --body "$body" \
+                  --label "$labels" \
+                  $assignee_param
+                  
+                echo "✅ Issue created: $title"
+              else
+                echo "❌ GitHub CLI not available"
+                exit 1
+              fi
+            fi
+          done
+          
+          echo "🎉 All issues created successfully!"
