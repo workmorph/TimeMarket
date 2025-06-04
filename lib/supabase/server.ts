@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers' // cookies関数をインポート
 
 // cookies() の返り値の型を ReturnType を使って取得
-// // type CookieStore = ReturnType<typeof cookies>
+// // // type CookieStore = ReturnType<typeof cookies>
 
 export function createClient(cookieStore: CookieStore) { // 型を CookieStore に変更
   return createServerClient(
