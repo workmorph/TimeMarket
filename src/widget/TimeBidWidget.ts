@@ -10,11 +10,26 @@ interface WidgetConfig {
     secondaryColor?: string;
     fontFamily?: string;
     borderRadius?: string;
+    darkMode?: boolean;
   };
+  features?: {
+    showBidHistory?: boolean;
+    enableAutoRefresh?: boolean;
+    refreshInterval?: number;
+    showCountdown?: boolean;
+    enableNotifications?: boolean;
+  };
+  layout?: {
+    style?: 'card' | 'list' | 'compact' | 'detailed';
+    columns?: number;
+    maxHeight?: string;
+  };
+  locale?: 'ja' | 'en';
   baseUrl?: string;
   onBidPlaced?: (bid: any) => void;
   onAuctionEnd?: (auction: any) => void;
   onWidgetLoad?: () => void;
+  onError?: (error: Error) => void;
 }
 
 interface WidgetMessage {
@@ -36,10 +51,23 @@ export class TimeBidWidget {
       apiKey: config.apiKey,
       containerId: config.containerId,
       theme: config.theme || {},
+      features: config.features || {
+        showBidHistory: true,
+        enableAutoRefresh: true,
+        refreshInterval: 30,
+        showCountdown: true,
+        enableNotifications: true
+      },
+      layout: config.layout || {
+        style: 'card',
+        columns: 2
+      },
+      locale: config.locale || 'ja',
       baseUrl: config.baseUrl || 'https://api.timebid.com',
       onBidPlaced: config.onBidPlaced,
       onAuctionEnd: config.onAuctionEnd,
-      onWidgetLoad: config.onWidgetLoad
+      onWidgetLoad: config.onWidgetLoad,
+      onError: config.onError
     };
     this.init();
   }
@@ -99,9 +127,16 @@ export class TimeBidWidget {
     
     // iframeの作成
     const iframe = document.createElement('iframe');
-    iframe.src = `${this.config.baseUrl}/widget?key=${this.config.apiKey}&theme=${encodeURIComponent(JSON.stringify(this.config.theme))}`;
+    const configParams = new URLSearchParams({
+      key: this.config.apiKey,
+      theme: JSON.stringify(this.config.theme),
+      features: JSON.stringify(this.config.features),
+      layout: JSON.stringify(this.config.layout),
+      locale: this.config.locale || 'ja'
+    });
+    iframe.src = `${this.config.baseUrl}/widget?${configParams.toString()}`;
     iframe.style.width = '100%';
-    iframe.style.height = '400px';
+    iframe.style.height = this.config.layout?.maxHeight || '400px';
     iframe.style.border = 'none';
     iframe.style.position = 'relative';
     iframe.style.zIndex = '2';
@@ -109,6 +144,7 @@ export class TimeBidWidget {
     iframe.style.transition = 'opacity 0.3s ease';
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
     iframe.setAttribute('title', 'TimeBid Auction Widget');
+    iframe.setAttribute('loading', 'lazy');
     
     this.container.appendChild(iframe);
     this.iframe = iframe;
@@ -163,6 +199,7 @@ export class TimeBidWidget {
         break;
       case 'TIMEBID_ERROR':
         console.error('TimeBid Widget error:', data.error);
+        this.config.onError?.(new Error(data.error || 'Unknown error'));
         break;
     }
   }
