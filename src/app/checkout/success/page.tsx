@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle, Loader2, Receipt, Calendar, User, CreditCard } from 'lucide-react'
+import { CheckCircle, Loader2, Receipt, Calendar, User } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 
 interface PaymentDetails {

@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     
     // 最低入札額チェック
     const bidAmount = Number(amount)
-    const currentMaxBid = auction.current_price || auction.starting_price
+    const currentMaxBid = auction.current_highest_bid || auction.starting_price
     
     if (bidAmount <= currentMaxBid) {
       return NextResponse.json(
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
     await supabase
       .from('auctions')
       .update({ 
-        current_price: bidAmount,
+        current_highest_bid: bidAmount,
         updated_at: new Date().toISOString()
       })
       .eq('id', auction_id)
