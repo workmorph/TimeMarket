@@ -306,7 +306,7 @@ export function AuctionDetail() {
                                     <CardTitle>入札する</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <BidForm currentBid={auction.current_highest_bid} />
+                                    <BidForm auction={auction} />
                                 </CardContent>
                             </Card>
                         )}
