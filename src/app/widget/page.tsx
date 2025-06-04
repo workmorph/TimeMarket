@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Auction, Bid } from '@/lib/supabase'
-import { formatCurrency, formatDateTime, getTimeRemaining } from '@/lib/utils'
+import { formatCurrency, getTimeRemaining } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -184,7 +184,7 @@ export default function WidgetPage() {
     const amount = parseInt(bidAmount)
     
     // 入札額のバリデーション
-    if (isNaN(amount) || amount < auction.current_price + 1000) {
+    if (isNaN(amount) || amount < auction.current_highest_bid + 1000) {
       setError('入札額は現在価格より1,000円以上高く設定してください')
       return
     }
@@ -275,7 +275,7 @@ export default function WidgetPage() {
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">現在価格</span>
             <span className="text-xl font-bold" style={{ color: styles.primaryColor }}>
-              {formatCurrency(auction.current_price)}
+              {formatCurrency(auction.current_highest_bid)}
             </span>
           </div>
           
@@ -298,8 +298,8 @@ export default function WidgetPage() {
                 type="number"
                 value={bidAmount}
                 onChange={(e) => setBidAmount(e.target.value)}
-                placeholder={`${auction.current_price + 1000}円以上`}
-                min={auction.current_price + 1000}
+                placeholder={`${auction.current_highest_bid + 1000}円以上`}
+                min={auction.current_highest_bid + 1000}
                 step={1000}
                 className="flex-1"
               />

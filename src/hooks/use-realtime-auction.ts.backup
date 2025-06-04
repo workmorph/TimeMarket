@@ -149,6 +149,6 @@ export function useRealtimeAuction(auctionId: string) {
     error,
     placeBid,
     refreshAuction: fetchAuction,
-    // // // refreshBids: fetchBids, // 重複削除 // 重複削除 // 重複削除
+    // // refreshBids: fetchBids, // 重複削除 // 重複削除
   }
 }
