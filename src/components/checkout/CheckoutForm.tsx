@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, CreditCard, Loader2, ShieldCheck } from 'lucide-react'
@@ -99,11 +100,14 @@ export function CheckoutForm({
       <CardContent>
         <div className="space-y-6">
           {auctionImage && (
-            <div className="aspect-video w-full overflow-hidden rounded-md bg-muted">
-              <img 
+            <div className="aspect-video w-full overflow-hidden rounded-md bg-muted relative">
+              <Image 
                 src={auctionImage} 
                 alt={auctionTitle} 
-                className="h-full w-full object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+                priority={false}
               />
             </div>
           )}
