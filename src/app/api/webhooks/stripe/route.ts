@@ -142,7 +142,7 @@ async function handlePaymentIntentFailed(
       await supabase
         .from('auctions')
         .update({
-          current_price: highestBid.amount,
+          current_highest_bid: highestBid.amount,
           updated_at: new Date().toISOString()
         })
         .eq('id', auction_id)
@@ -158,7 +158,7 @@ async function handlePaymentIntentFailed(
         await supabase
           .from('auctions')
           .update({
-            current_price: auction.starting_price,
+            current_highest_bid: auction.starting_price,
             updated_at: new Date().toISOString()
           })
           .eq('id', auction_id)

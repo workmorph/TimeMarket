@@ -184,7 +184,7 @@ export default function WidgetPage() {
     const amount = parseInt(bidAmount)
     
     // 入札額のバリデーション
-    if (isNaN(amount) || amount < auction.current_price + 1000) {
+    if (isNaN(amount) || amount < auction.current_highest_bid + 1000) {
       setError('入札額は現在価格より1,000円以上高く設定してください')
       return
     }
