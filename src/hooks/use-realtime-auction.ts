@@ -9,47 +9,6 @@ export function useRealtimeAuction(auctionId: string) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
-  useEffect(() => {
-    // オークション情報と入札履歴を取得
-    fetchAuction()
-    fetchBids()
-    
-    // リアルタイム更新のサブスクリプション設定
-    const auctionSubscription = supabase
-      .channel('auction-changes')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'auctions',
-        filter: `id=eq.${auctionId}`
-      }, (payload) => {
-        setAuction(payload.new as Auction)
-      })
-      .subscribe()
-      
-    const bidSubscription = supabase
-      .channel('bid-changes')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'bids',
-        filter: `auction_id=eq.${auctionId}`
-      }, (payload) => {
-        // 新しい入札を追加
-        setBids(prev => [payload.new as Bid, ...prev])
-        
-        // オークション情報も更新（最新の入札額を反映）
-        fetchAuction()
-      })
-      .subscribe()
-      
-    // クリーンアップ関数
-    return () => {
-      supabase.removeChannel(auctionSubscription)
-      supabase.removeChannel(bidSubscription)
-    }
-  }, [auctionId])
-  
   // オークション情報を取得
   async function fetchAuction() {
     try {
@@ -92,6 +51,47 @@ export function useRealtimeAuction(auctionId: string) {
       setError(err.message)
     }
   }
+  
+  useEffect(() => {
+    // オークション情報と入札履歴を取得
+    fetchAuction()
+    fetchBids()
+    
+    // リアルタイム更新のサブスクリプション設定
+    const auctionSubscription = supabase
+      .channel('auction-changes')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'auctions',
+        filter: `id=eq.${auctionId}`
+      }, (payload) => {
+        setAuction(payload.new as Auction)
+      })
+      .subscribe()
+      
+    const bidSubscription = supabase
+      .channel('bid-changes')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'bids',
+        filter: `auction_id=eq.${auctionId}`
+      }, (payload) => {
+        // 新しい入札を追加
+        setBids(prev => [payload.new as Bid, ...prev])
+        
+        // オークション情報も更新（最新の入札額を反映）
+        fetchAuction()
+      })
+      .subscribe()
+      
+    // クリーンアップ関数
+    return () => {
+      supabase.removeChannel(auctionSubscription)
+      supabase.removeChannel(bidSubscription)
+    }
+  }, [auctionId])
   
   // 入札を行う関数
   async function placeBid(amount: number, bidderId: string) {
