@@ -1,7 +1,9 @@
-name: Refresh Claude Tokens
+# .github/workflows/refresh-claude-tokens.yml
+name: Refresh Claude Tokens (no-password)
+
 on:
   schedule:
-    - cron: '0 18 * * *'   # 03:00 JST
+    - cron: '50 17 * * *'   # UTC 17:50 ≒ JST 02:50 → 24h サイクルの少し前
   workflow_dispatch:
 
 jobs:
@@ -9,25 +11,36 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: write                # gh secret set で必要
+      contents: write
 
     steps:
       - name: Install Claude CLI
-        run: npm i -g @anthropic-ai/claude-code@latest
+        run: npm i -g @anthropic-ai/claude-code@1.12.0
 
-      - name: Ensure jq is present    # ← 追加行
-        run: sudo apt-get update && sudo apt-get -y install jq
-
-      - name: Headless relogin
+      - name: Dump fresh tokens
         env:
-          CLAUDE_EMAIL:    ${{ secrets.CLAUDE_EMAIL }}
-          CLAUDE_PASSWORD: ${{ secrets.CLAUDE_PASSWORD }}
+          CLAUDE_ACCESS_TOKEN:  ${{ secrets.CLAUDE_ACCESS_TOKEN }}
+          CLAUDE_REFRESH_TOKEN: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
+          CLAUDE_EXPIRES_AT:    ${{ secrets.CLAUDE_EXPIRES_AT }}
         run: |
-          claude login --headless -e "$CLAUDE_EMAIL" -p "$CLAUDE_PASSWORD"
-          cred="$HOME/.claude/.credentials.json"
-          ACCESS=$(jq -r '.claudeAiOauth.accessToken'   "$cred")
-          REFRESH=$(jq -r '.claudeAiOauth.refreshToken' "$cred")
-          EXPIRES=$(jq -r '.claudeAiOauth.expiresAt'    "$cred")
+          mkdir -p ~/.claude
+          cat > ~/.claude/.credentials.json <<EOF
+          {
+            "claudeAiOauth": {
+              "accessToken":  "$CLAUDE_ACCESS_TOKEN",
+              "refreshToken": "$CLAUDE_REFRESH_TOKEN",
+              "expiresAt":    $CLAUDE_EXPIRES_AT
+            }
+          }
+          EOF
+
+          # CLI が自動で refresh し、最新トークンを出力
+          NEW=$(claude /export-credentials | tail -n1)
+          echo "$NEW" > fresh.json
+          ACCESS=$(jq -r '.accessToken'  fresh.json)
+          REFRESH=$(jq -r '.refreshToken' fresh.json)
+          EXPIRES=$(jq -r '.expiresAt'    fresh.json)
+
           gh secret set CLAUDE_ACCESS_TOKEN  -b"$ACCESS"
           gh secret set CLAUDE_REFRESH_TOKEN -b"$REFRESH"
           gh secret set CLAUDE_EXPIRES_AT    -b"$EXPIRES"

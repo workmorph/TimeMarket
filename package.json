@@ -2,6 +2,7 @@
   "name": "time-bid",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -21,7 +22,7 @@
     "check-status": "bash check-status.sh",
     "type-check": "tsc --noEmit",
     "test": "echo 'Tests to be implemented'",
-    "test:api-keys": "ts-node scripts/test-api-keys.ts",
+    "test:api-keys": "NODE_DEBUG=* ts-node scripts/test-api-keys.ts",
     "lighthouse": "echo 'Lighthouse to be implemented'"
   },
   "dependencies": {
