@@ -72,10 +72,11 @@ export async function POST(req: NextRequest) {
 
     // 手数料の計算（15%）
     const { platformFee, sellerAmount } = calculateFees(bidAmount);
+    const totalAmount = bidAmount + platformFee; // 入札額 + 手数料
 
     // 支払い成功時のURLを設定（クエリパラメータを追加）
     const successUrl = new URL(
-      `/checkout/success?auction=${auctionId}&session_id={CHECKOUT_SESSION_ID}`,
+      `/checkout/success?auction_id=${auctionId}&session_id={CHECKOUT_SESSION_ID}`,
       process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     ).toString();
 
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
               description: `${auction.description ? auction.description.substring(0, 100) : ''}${auction.description && auction.description.length > 100 ? '...' : ''}`,
               images: auction.images && auction.images.length > 0 ? [auction.images[0]] : [],
             },
-            unit_amount: bidAmount,
+            unit_amount: totalAmount, // 入札額 + 15%手数料
           },
           quantity: 1,
         },
@@ -106,23 +107,22 @@ export async function POST(req: NextRequest) {
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
-        auctionId,
-        bidderId: session.user.id,
-        bidderName: session.user.name || session.user.email?.split('@')[0] || 'ユーザー',
-        sellerId: auction.user_id,
-        sellerName: auction.user?.name || 'ホスト',
-        bidAmount: bidAmount.toString(),
-        platformFee: platformFee.toString(),
-        sellerAmount: sellerAmount.toString(),
-        auctionTitle: auction.title,
-        createdAt: new Date().toISOString(),
+        auction_id: auctionId,
+        bid_id: '', // webhookで入札IDを設定
+        user_id: session.user.id,
+        bid_amount: bidAmount.toString(),
+        platform_fee: platformFee.toString(),
+        total_amount: totalAmount.toString(),
+        seller_amount: sellerAmount.toString(),
+        auction_title: auction.title,
+        created_at: new Date().toISOString(),
       },
       customer_email: session.user.email,
       allow_promotion_codes: true,
     });
 
     // 入札情報をデータベースに保存（支払い前の状態）
-    const { error: bidError } = await supabase.from('bids').insert({
+    const { data: bid, error: bidError } = await supabase.from('bids').insert({
       auction_id: auctionId,
       user_id: session.user.id,
       bidder_name: session.user.name || session.user.email?.split('@')[0] || 'ユーザー',
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
       payment_status: 'pending',
       platform_fee: platformFee,
       seller_amount: sellerAmount,
-    });
+    }).select().single();
 
     if (bidError) {
       console.error('入札情報の保存に失敗しました:', bidError);
@@ -144,6 +144,18 @@ export async function POST(req: NextRequest) {
         payment_intent: checkoutSession.payment_intent,
       });
       // エラーがあっても決済は続行（Webhookで後処理）
+    } else if (bid) {
+      // 入札IDをStripeセッションのメタデータに追加
+      try {
+        await stripe.checkout.sessions.update(checkoutSession.id, {
+          metadata: {
+            ...checkoutSession.metadata,
+            bid_id: bid.id,
+          },
+        });
+      } catch (updateError) {
+        console.warn('Stripeメタデータの更新に失敗:', updateError);
+      }
     }
     
     // 監査ログを記録
@@ -166,9 +178,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       url: checkoutSession.url,
       session_id: checkoutSession.id,
-      amount: bidAmount,
-      formatted_amount: formatCurrency(bidAmount),
+      bid_amount: bidAmount,
       platform_fee: platformFee,
+      total_amount: totalAmount,
+      formatted_total: formatCurrency(totalAmount),
       seller_amount: sellerAmount
     });
   } catch (error) {

@@ -64,7 +64,9 @@ export function CheckoutForm({
       // セッション情報をローカルストレージに保存（成功ページで使用）
       if (data.session_id) {
         localStorage.setItem('checkout_session_id', data.session_id)
-        localStorage.setItem('checkout_amount', data.amount?.toString() || '')
+        localStorage.setItem('checkout_bid_amount', data.bid_amount?.toString() || '')
+        localStorage.setItem('checkout_total_amount', data.total_amount?.toString() || '')
+        localStorage.setItem('checkout_platform_fee', data.platform_fee?.toString() || '')
         localStorage.setItem('checkout_auction_id', auctionId)
         localStorage.setItem('checkout_auction_title', auctionTitle)
       }
