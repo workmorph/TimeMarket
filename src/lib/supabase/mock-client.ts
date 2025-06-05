@@ -6,19 +6,22 @@ export const createMockClient = () => {
       signInWithPassword: async () => ({ data: { user: null }, error: null }),
       signOut: async () => ({ error: null }),
     },
-    from: (table: string) => ({
-      select: () => ({
-        eq: () => ({
-          order: () => ({ data: [], error: null }),
-        }),
-      }),
-      insert: () => ({
+    from: (table: string) => {
+      console.debug(`Mock client accessing table: ${table}`);
+      return {
         select: () => ({
-          single: () => ({ data: null, error: null }),
+          eq: () => ({
+            order: () => ({ data: [], error: null }),
+          }),
         }),
-      }),
-    }),
-  }
-}
+        insert: () => ({
+          select: () => ({
+            single: () => ({ data: null, error: null }),
+          }),
+        }),
+      };
+    },
+  };
+};
 
-export default createMockClient
+export default createMockClient;

@@ -1,53 +1,53 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CreditCard, AlertCircle } from 'lucide-react'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CreditCard, AlertCircle } from "lucide-react";
 
 interface CheckoutFormProps {
-  amount: number
-  currency?: string
-  onSuccess?: () => void
-  onError?: (error: string) => void
+  amount: number;
+  currency?: string;
+  onSuccess?: () => void;
+  onError?: (error: string) => void;
 }
 
 export default function CheckoutForm({
   amount,
-  currency = 'JPY',
+  currency = "JPY",
   onSuccess,
-  onError
+  onError,
 }: CheckoutFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     try {
       // 決済処理（モック）
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      console.log('Payment processed:', { amount, currency })
-      onSuccess?.()
-    } catch (error) {
-      const errorMessage = '決済処理に失敗しました'
-      setError(errorMessage)
-      onError?.(errorMessage)
+      console.log("Payment processed:", { amount, currency });
+      onSuccess?.();
+    } catch {
+      const errorMessage = "決済処理に失敗しました";
+      setError(errorMessage);
+      onError?.(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const formatAmount = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('ja-JP', {
-      style: 'currency',
+    return new Intl.NumberFormat("ja-JP", {
+      style: "currency",
       currency: currency,
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   return (
     <Card className="max-w-md mx-auto">
@@ -69,12 +69,8 @@ export default function CheckoutForm({
         )}
 
         <form onSubmit={handleSubmit}>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? '処理中...' : `${formatAmount(amount, currency)} を支払う`}
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? "処理中..." : `${formatAmount(amount, currency)} を支払う`}
           </Button>
         </form>
 
@@ -83,5 +79,5 @@ export default function CheckoutForm({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

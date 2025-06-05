@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeBid ウィジェット - 埋め込み方法</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .demo-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        pre {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #0066cc;
+            overflow-x: auto;
+        }
+        code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+        .widget-preview {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .note {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 TimeBid ウィジェット</h1>
+    
+    <div class="demo-container">
+        <h2>📋 基本的な使用方法</h2>
+        <p>あなたのウェブサイトに以下のコードを追加するだけで、TimeBidウィジェットを埋め込めます：</p>
+        
+        <pre><code>&lt;!-- ウィジェットのスクリプトを読み込み --&gt;
+&lt;script src="https://yourdomain.com/widget/timebid-widget.js"&gt;&lt;/script&gt;
+
+&lt;!-- ウィジェットを表示する場所に配置 --&gt;
+&lt;div data-timebid-widget&gt;&lt;/div&gt;</code></pre>
+
+        <div class="note">
+            <strong>🎯 自動初期化:</strong> <code>data-timebid-widget</code> 属性を持つ要素が自動的にウィジェットに変換されます
+        </div>
+    </div>
+
+    <div class="demo-container">
+        <h2>🎨 カスタマイズ例</h2>
+        <p>より詳細なカスタマイズを行う場合：</p>
+        
+        <pre><code>&lt;div id="timebid-custom-widget"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+document.addEventListener('DOMContentLoaded', function() {
+    new TimeBidWidget({
+        container: '#timebid-custom-widget',
+        config: {
+            theme: 'dark',
+            primaryColor: '#ff6b6b',
+            borderRadius: '12px',
+            showLogo: true,
+            customCSS: `
+                .timebid-widget {
+                    background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+                }
+            `
+        }
+    });
+});
+&lt;/script&gt;</code></pre>
+    </div>
+
+    <div class="demo-container">
+        <h2>🔧 設定オプション</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background: #f8fafc;">
+                <th style="padding: 12px; text-align: left; border: 1px solid #e2e8f0;">オプション</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid #e2e8f0;">デフォルト</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid #e2e8f0;">説明</th>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;"><code>theme</code></td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">'light'</td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">'light' または 'dark'</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;"><code>primaryColor</code></td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">'#0066cc'</td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">メインカラー（16進数）</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;"><code>borderRadius</code></td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">'8px'</td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">角の丸み</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;"><code>showLogo</code></td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">true</td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">ロゴ表示の有無</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;"><code>customCSS</code></td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">''</td>
+                <td style="padding: 12px; border: 1px solid #e2e8f0;">追加のCSSスタイル</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="demo-container">
+        <h2>👀 プレビュー</h2>
+        <p>以下は実際のウィジェットのプレビューです：</p>
+        
+        <div class="widget-preview">
+            <!-- ライトテーマ -->
+            <div data-timebid-widget></div>
+            
+            <!-- ダークテーマのカスタム -->
+            <div id="dark-widget"></div>
+        </div>
+    </div>
+
+    <div class="demo-container">
+        <h2>📞 サポート</h2>
+        <p>ウィジェットの実装でお困りの際は、以下までお気軽にお問い合わせください：</p>
+        <ul>
+            <li>📧 メール: support@timebid.jp</li>
+            <li>📚 ドキュメント: <a href="https://docs.timebid.jp">docs.timebid.jp</a></li>
+            <li>💬 チャット: ウェブサイト右下のチャットボタン</li>
+        </ul>
+    </div>
+
+    <!-- ウィジェットスクリプト読み込み -->
+    <script src="./timebid-widget.js"></script>
+    
+    <!-- カスタムダークウィジェット -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            new TimeBidWidget({
+                container: '#dark-widget',
+                config: {
+                    theme: 'dark',
+                    primaryColor: '#8b5cf6',
+                    borderRadius: '12px',
+                    showLogo: true
+                }
+            });
+        });
+    </script>
+</body>
+</html>

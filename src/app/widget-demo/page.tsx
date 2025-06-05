@@ -1,24 +1,31 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Copy, ExternalLink, Info } from 'lucide-react'
-import Link from 'next/link'
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' // 現在未使用
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+// import { Separator } from '@/components/ui/separator' // 現在未使用
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Copy, ExternalLink, Info } from "lucide-react";
+import Link from "next/link";
 
 export default function WidgetDemoPage() {
-  const [apiKey, setApiKey] = useState('')
-  const [primaryColor, setPrimaryColor] = useState('#3498db')
-  const [borderRadius, setBorderRadius] = useState('0.5rem')
-  const [fontFamily, setFontFamily] = useState('system-ui, sans-serif')
-  const [copied, setCopied] = useState(false)
-  const [iframeKey, setIframeKey] = useState(0) // iframeを強制的に再読み込みするためのキー
-  
+  const [apiKey, setApiKey] = useState("");
+  const [primaryColor, setPrimaryColor] = useState("#3498db");
+  const [borderRadius, setBorderRadius] = useState("0.5rem");
+  const [fontFamily, setFontFamily] = useState("system-ui, sans-serif");
+  const [copied, setCopied] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0); // iframeを強制的に再読み込みするためのキー
+
   // デモコードの生成
   const generateDemoCode = () => {
     return `<!DOCTYPE html>
@@ -50,7 +57,7 @@ export default function WidgetDemoPage() {
     document.addEventListener('DOMContentLoaded', function() {
       // ウィジェットの初期化
       const widget = TimeBid.createWidget({
-        apiKey: '${apiKey || 'YOUR_API_KEY'}',
+        apiKey: '${apiKey || "YOUR_API_KEY"}',
         containerId: 'timebid-widget-container',
         theme: {
           primaryColor: '${primaryColor}',
@@ -69,19 +76,19 @@ export default function WidgetDemoPage() {
 </body>
 </html>`;
   };
-  
+
   // クリップボードにコピー
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-  
+
   // ウィジェットのプレビューを更新
   const updatePreview = () => {
-    setIframeKey(prev => prev + 1);
+    setIframeKey((prev) => prev + 1);
   };
-  
+
   // iframeのsrcDoc生成
   const generateIframeSrcDoc = () => {
     return `
@@ -254,49 +261,50 @@ export default function WidgetDemoPage() {
       </html>
     `;
   };
-  
+
   // iframeの高さを調整
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'IFRAME_READY') {
-        const iframe = document.getElementById('widget-preview-iframe') as HTMLIFrameElement;
+      if (event.data && event.data.type === "IFRAME_READY") {
+        const iframe = document.getElementById("widget-preview-iframe") as HTMLIFrameElement;
         if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage({
-            type: 'TIMEBID_WIDGET_INIT',
-            config: {
-              apiKey,
-              theme: {
-                primaryColor,
-                borderRadius,
-                fontFamily
-              }
-            }
-          }, '*');
+          iframe.contentWindow.postMessage(
+            {
+              type: "TIMEBID_WIDGET_INIT",
+              config: {
+                apiKey,
+                theme: {
+                  primaryColor,
+                  borderRadius,
+                  fontFamily,
+                },
+              },
+            },
+            "*"
+          );
         }
-      } else if (event.data && event.data.type === 'IFRAME_RESIZE') {
-        const iframe = document.getElementById('widget-preview-iframe') as HTMLIFrameElement;
+      } else if (event.data && event.data.type === "IFRAME_RESIZE") {
+        const iframe = document.getElementById("widget-preview-iframe") as HTMLIFrameElement;
         if (iframe) {
           iframe.style.height = `${event.data.height}px`;
         }
       }
     };
-    
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, [apiKey, primaryColor, borderRadius, fontFamily, iframeKey]);
-  
+
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-6">ウィジェットデモ</h1>
-      
+
       <div className="grid md:grid-cols-2 gap-6">
         <div>
           <Card>
             <CardHeader>
               <CardTitle>ウィジェット設定</CardTitle>
-              <CardDescription>
-                ウィジェットの外観と動作をカスタマイズします
-              </CardDescription>
+              <CardDescription>ウィジェットの外観と動作をカスタマイズします</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -314,7 +322,7 @@ export default function WidgetDemoPage() {
                   でAPIキーを作成できます
                 </p>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="primary-color">メインカラー</Label>
                 <div className="flex gap-2">
@@ -332,7 +340,7 @@ export default function WidgetDemoPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="border-radius">角丸の半径</Label>
                 <Input
@@ -342,7 +350,7 @@ export default function WidgetDemoPage() {
                   onChange={(e) => setBorderRadius(e.target.value)}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="font-family">フォント</Label>
                 <Input
@@ -354,12 +362,10 @@ export default function WidgetDemoPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={updatePreview}>
-                プレビューを更新
-              </Button>
+              <Button onClick={updatePreview}>プレビューを更新</Button>
             </CardFooter>
           </Card>
-          
+
           <Alert className="mt-6">
             <Info className="h-4 w-4" />
             <AlertDescription>
@@ -368,14 +374,12 @@ export default function WidgetDemoPage() {
             </AlertDescription>
           </Alert>
         </div>
-        
+
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>ウィジェットプレビュー</CardTitle>
-              <CardDescription>
-                設定に基づいたウィジェットの外観
-              </CardDescription>
+              <CardDescription>設定に基づいたウィジェットの外観</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="border rounded-md overflow-hidden">
@@ -383,14 +387,14 @@ export default function WidgetDemoPage() {
                   id="widget-preview-iframe"
                   key={iframeKey}
                   srcDoc={generateIframeSrcDoc()}
-                  style={{ width: '100%', height: '400px', border: 'none' }}
+                  style={{ width: "100%", height: "400px", border: "none" }}
                   title="Widget Preview"
                   sandbox="allow-scripts allow-same-origin"
                 ></iframe>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>埋め込みコード</CardTitle>
@@ -429,5 +433,5 @@ export default function WidgetDemoPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

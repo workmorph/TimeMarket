@@ -1,58 +1,57 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface WidgetConfig {
-  theme: string
-  primaryColor: string
-  borderRadius: string
-  showLogo: boolean
-  customCSS: string
+  theme: string;
+  primaryColor: string;
+  borderRadius: string;
+  showLogo: boolean;
+  customCSS: string;
 }
 
 interface WidgetCustomizerProps {
-  onConfigChange: (config: WidgetConfig) => void
+  onConfigChange: (config: WidgetConfig) => void;
 }
 
 export default function WidgetCustomizer({ onConfigChange }: WidgetCustomizerProps) {
   const [config, setConfig] = useState<WidgetConfig>({
-    theme: 'light',
-    primaryColor: '#0066cc',
-    borderRadius: '8px',
+    theme: "light",
+    primaryColor: "#0066cc",
+    borderRadius: "8px",
     showLogo: true,
-    customCSS: '',
-  })
+    customCSS: "",
+  });
 
   const handleConfigChange = (key: keyof WidgetConfig, value: string | boolean) => {
-    const newConfig = { ...config, [key]: value }
-    setConfig(newConfig)
-    onConfigChange(newConfig)
-  }
+    const newConfig = { ...config, [key]: value };
+    setConfig(newConfig);
+    onConfigChange(newConfig);
+  };
 
   const handleThemeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    handleConfigChange('theme', event.target.value)
-  }
+    handleConfigChange("theme", event.target.value);
+  };
 
   const handleColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleConfigChange('primaryColor', event.target.value)
-  }
+    handleConfigChange("primaryColor", event.target.value);
+  };
 
   const handleRadiusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleConfigChange('borderRadius', event.target.value)
-  }
+    handleConfigChange("borderRadius", event.target.value);
+  };
 
   const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleConfigChange('showLogo', event.target.checked)
-  }
+    handleConfigChange("showLogo", event.target.checked);
+  };
 
   const handleCSSChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    handleConfigChange('customCSS', event.target.value)
-  }
+    handleConfigChange("customCSS", event.target.value);
+  };
 
   return (
     <Card>
@@ -116,5 +115,5 @@ export default function WidgetCustomizer({ onConfigChange }: WidgetCustomizerPro
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

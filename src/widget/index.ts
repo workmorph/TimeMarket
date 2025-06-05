@@ -1,15 +1,28 @@
-import { TimeBidWidget } from './TimeBidWidget';
+import TimeBidWidget from "./TimeBidWidget";
+
+interface WidgetConfig {
+  theme: "light" | "dark";
+  primaryColor: string;
+  borderRadius: string;
+  showLogo: boolean;
+  customCSS: string;
+}
+
+interface WidgetOptions {
+  container: string | HTMLElement;
+  config: WidgetConfig;
+}
 
 // グローバルに公開するためのインターフェース
 interface TimeBidGlobal {
-  createWidget: (config: any) => TimeBidWidget;
+  createWidget: (options: WidgetOptions) => TimeBidWidget;
   version: string;
 }
 
 // グローバルオブジェクトの作成
 const TimeBid: TimeBidGlobal = {
-  createWidget: (config) => new TimeBidWidget(config),
-  version: '1.0.0'
+  createWidget: (options) => new TimeBidWidget(options),
+  version: "1.0.0",
 };
 
 // グローバルスコープに追加
@@ -20,7 +33,7 @@ declare global {
 }
 
 // ブラウザ環境の場合はグローバルに公開
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.TimeBid = TimeBid;
 }
 

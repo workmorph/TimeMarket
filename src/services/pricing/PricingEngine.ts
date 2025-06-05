@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 interface PricingSuggestion {
   reserve_price: number;
@@ -43,22 +43,26 @@ class PricingEngine {
   async generateReservePrice(auctionData: AuctionData): Promise<PricingSuggestion> {
     try {
       const completion = await this.client.chat.completions.create({
-        model: 'gpt-3.5-turbo', // Start with cost-effective model
+        model: "gpt-3.5-turbo", // Start with cost-effective model
         messages: [
-          { role: 'system', content: this.systemPrompt },
-          { 
-            role: 'user', 
+          { role: "system", content: this.systemPrompt },
+          {
+            role: "user",
             content: `Analyze this auction data and suggest reserve price:
-            ${JSON.stringify(auctionData, null, 2)}`
-          }
+            ${JSON.stringify(auctionData, null, 2)}`,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 500
+        max_tokens: 500,
       });
-      
-      return JSON.parse(completion.choices[0].message.content) as PricingSuggestion;
-    } catch (error) {
-      console.error('Pricing API error:', error);
+
+      const content = completion.choices?.[0]?.message?.content;
+      if (!content) {
+        throw new Error("No content received from OpenAI API");
+      }
+      return JSON.parse(content) as PricingSuggestion;
+    } catch (error: unknown) {
+      console.error("Pricing API error:", error);
       return this.fallbackPricing(auctionData);
     }
   }
@@ -67,11 +71,12 @@ class PricingEngine {
     // Simple fallback logic if AI fails
     const startingPrice = auctionData.startingPrice;
     const reservePrice = startingPrice * 1.5; // 50% higher than starting price as fallback
-    
+
     return {
       reserve_price: reservePrice,
       confidence: 0.5,
-      reasoning: "Fallback pricing used due to API error. Suggested reserve price is 50% higher than starting price."
+      reasoning:
+        "Fallback pricing used due to API error. Suggested reserve price is 50% higher than starting price.",
     };
   }
 }

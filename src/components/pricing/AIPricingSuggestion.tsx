@@ -1,13 +1,20 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Loader2, ThumbsUp, ThumbsDown, Sparkles, AlertCircle, Info } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
-import { useAuth } from '@/hooks/use-auth'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, ThumbsUp, ThumbsDown, Sparkles, AlertCircle, Info } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AuctionData {
   id?: string;
@@ -41,58 +48,58 @@ export function AIPricingSuggestion({ auctionData, onAcceptSuggestion }: AIPrici
     variant?: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null);
+  const [feedback, setFeedback] = useState<"positive" | "negative" | null>(null);
 
-  useEffect(() => {
-    if (auctionData.title && auctionData.startingPrice > 0 && user) {
-      generatePricingSuggestion();
-    }
-  }, [auctionData.title, auctionData.startingPrice, user]);
-
-  const generatePricingSuggestion = async () => {
+  const generatePricingSuggestion = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/pricing', {
-        method: 'POST',
+
+      const response = await fetch("/api/pricing", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           auctionData,
           userId: user.id,
         }),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to generate pricing suggestion');
+        throw new Error("Failed to generate pricing suggestion");
       }
-      
+
       const data = await response.json();
       setSuggestion(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate pricing suggestion');
+      setError(err instanceof Error ? err.message : "Failed to generate pricing suggestion");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, auctionData]);
+
+  useEffect(() => {
+    if (auctionData.title && auctionData.startingPrice > 0 && user) {
+      generatePricingSuggestion();
+    }
+  }, [auctionData.title, auctionData.startingPrice, user, generatePricingSuggestion]);
 
   const handleAcceptSuggestion = () => {
     if (suggestion?.reserve_price) {
       onAcceptSuggestion(suggestion.reserve_price);
-      setFeedback('positive');
+      setFeedback("positive");
     }
   };
 
   const handleRejectSuggestion = () => {
-    setFeedback('negative');
+    setFeedback("negative");
   };
 
   // If in manual pricing group or no suggestion yet
-  if (!suggestion || suggestion.variant === 'manual_pricing') {
+  if (!suggestion || suggestion.variant === "manual_pricing") {
     return null;
   }
 
@@ -112,7 +119,7 @@ export function AIPricingSuggestion({ auctionData, onAcceptSuggestion }: AIPrici
           あなたのオークションデータを分析し、最適な予約価格を提案します
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         {isLoading ? (
           <div className="flex items-center justify-center py-6">
@@ -133,7 +140,7 @@ export function AIPricingSuggestion({ auctionData, onAcceptSuggestion }: AIPrici
                   {formatCurrency(suggestion.reserve_price || 0)}
                 </span>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground flex items-center">
                   信頼度
@@ -143,15 +150,17 @@ export function AIPricingSuggestion({ auctionData, onAcceptSuggestion }: AIPrici
                         <Info className="w-4 h-4 ml-1 text-muted-foreground" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="w-60">AIがこの価格提案にどれだけ自信を持っているかを示します。高いほど、より多くのデータに基づいた提案です。</p>
+                        <p className="w-60">
+                          AIがこの価格提案にどれだけ自信を持っているかを示します。高いほど、より多くのデータに基づいた提案です。
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </span>
                 <div className="flex items-center">
                   <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden mr-2">
-                    <div 
-                      className="h-full bg-blue-600 rounded-full" 
+                    <div
+                      className="h-full bg-blue-600 rounded-full"
                       style={{ width: `${(suggestion.confidence || 0) * 100}%` }}
                     />
                   </div>
@@ -160,7 +169,7 @@ export function AIPricingSuggestion({ auctionData, onAcceptSuggestion }: AIPrici
                   </span>
                 </div>
               </div>
-              
+
               <div>
                 <span className="text-sm text-muted-foreground">AIの分析</span>
                 <p className="text-sm mt-1 bg-white p-3 rounded-md border">
@@ -171,20 +180,20 @@ export function AIPricingSuggestion({ auctionData, onAcceptSuggestion }: AIPrici
           </>
         )}
       </CardContent>
-      
+
       {!isLoading && !error && suggestion?.reserve_price && !feedback && (
         <CardFooter className="flex justify-between pt-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleRejectSuggestion}
             className="text-gray-600"
           >
             <ThumbsDown className="w-4 h-4 mr-1" />
             使用しない
           </Button>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             onClick={handleAcceptSuggestion}
             className="bg-blue-600 hover:bg-blue-700"
           >
@@ -193,8 +202,8 @@ export function AIPricingSuggestion({ auctionData, onAcceptSuggestion }: AIPrici
           </Button>
         </CardFooter>
       )}
-      
-      {feedback === 'positive' && (
+
+      {feedback === "positive" && (
         <CardFooter className="pt-2">
           <p className="text-sm text-green-600 flex items-center w-full justify-center">
             <ThumbsUp className="w-4 h-4 mr-1" />
@@ -202,8 +211,8 @@ export function AIPricingSuggestion({ auctionData, onAcceptSuggestion }: AIPrici
           </p>
         </CardFooter>
       )}
-      
-      {feedback === 'negative' && (
+
+      {feedback === "negative" && (
         <CardFooter className="pt-2">
           <p className="text-sm text-gray-600 flex items-center w-full justify-center">
             フィードバックありがとうございます

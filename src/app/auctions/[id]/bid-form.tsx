@@ -1,68 +1,71 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Clock, AlertCircle } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
-import { useAuth } from '@/hooks/use-auth'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import type { JSX } from "react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Clock, AlertCircle } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 
 interface Auction {
-  id: string
-  title: string
-  current_highest_bid: number
-  starting_price: number
-  status: string
-  ends_at: string
+  id: string;
+  title: string;
+  current_highest_bid: number;
+  starting_price: number;
+  status: string;
+  ends_at: string;
 }
 
 interface BidFormProps {
-  auction: Auction
-  onPlaceBid?: (amount: number) => Promise<void>
+  auction: Auction;
+  onPlaceBid?: (amount: number) => Promise<void>;
 }
 
-export function BidForm({ auction, onPlaceBid }: BidFormProps) {
-  const { user, isLoading: authLoading } = useAuth()
-  const router = useRouter()
-  const [bidAmount, setBidAmount] = useState<number>(auction.current_highest_bid + 500)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function BidForm({ auction, onPlaceBid }: BidFormProps): JSX.Element {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const [bidAmount, setBidAmount] = useState<number>(auction.current_highest_bid + 500);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleBidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10)
-    setBidAmount(isNaN(value) ? 0 : value)
-  }
+  const handleBidChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = parseInt(e.target.value, 10);
+    setBidAmount(isNaN(value) ? 0 : value);
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    setError(null);
 
     // 入札額のバリデーション
     if (bidAmount <= auction.current_highest_bid) {
-      setError('現在の最高入札額より高い金額を入力してください')
-      return
+      setError("現在の最高入札額より高い金額を入力してください");
+      return;
     }
 
     if (!user) {
-      router.push('/auth/login?redirect=' + encodeURIComponent(`/auctions/${auction.id}`))
-      return
+      router.push("/auth/login?redirect=" + encodeURIComponent(`/auctions/${auction.id}`));
+      return;
     }
 
     if (onPlaceBid) {
       try {
-        setIsSubmitting(true)
-        await onPlaceBid(bidAmount)
+        setIsSubmitting(true);
+        await onPlaceBid(bidAmount);
         // 成功したら入札額をリセット
-        setBidAmount(prev => prev + 500)
+        setBidAmount((prev) => prev + 500);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '入札に失敗しました。もう一度お試しください。')
+        setError(
+          err instanceof Error ? err.message : "入札に失敗しました。もう一度お試しください。"
+        );
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     }
-  }
+  };
 
   return (
     <Card>
@@ -108,7 +111,7 @@ export function BidForm({ auction, onPlaceBid }: BidFormProps) {
               className="w-full"
               disabled={isSubmitting || authLoading || bidAmount <= auction.current_highest_bid}
             >
-              {isSubmitting ? '処理中...' : '入札する'}
+              {isSubmitting ? "処理中..." : "入札する"}
             </Button>
           </form>
         </div>
@@ -120,5 +123,5 @@ export function BidForm({ auction, onPlaceBid }: BidFormProps) {
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }

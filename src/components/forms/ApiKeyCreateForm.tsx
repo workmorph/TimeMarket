@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -19,146 +19,139 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { 
-  Key, 
-  AlertTriangle, 
-  Shield, 
-  Globe, 
-  Clock,
-  Gauge,
-  Info,
-  Plus,
-  X
-} from 'lucide-react'
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Key, AlertTriangle, Shield, Globe, Clock, Gauge, Info, Plus, X } from "lucide-react";
 
 interface ApiKeyCreateFormProps {
-  onSubmit: (data: ApiKeyFormData) => Promise<void>
-  onCancel?: () => void
-  isLoading?: boolean
+  onSubmit: (data: ApiKeyFormData) => Promise<void>;
+  onCancel?: () => void;
+  isLoading?: boolean;
 }
 
 export interface ApiKeyFormData {
-  name: string
-  description?: string
+  name: string;
+  description?: string;
   permissions: {
-    read: boolean
-    write: boolean
-    delete: boolean
-  }
-  allowed_origins: string[]
-  rate_limit: number
-  expires_at?: string
+    read: boolean;
+    write: boolean;
+    delete: boolean;
+  };
+  allowed_origins: string[];
+  rate_limit: number;
+  expires_at?: string;
 }
 
 export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiKeyCreateFormProps) {
   const [formData, setFormData] = useState<ApiKeyFormData>({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     permissions: {
       read: true,
       write: false,
-      delete: false
+      delete: false,
     },
     allowed_origins: [],
     rate_limit: 1000,
-    expires_at: ''
-  })
+    expires_at: "",
+  });
 
-  const [originInput, setOriginInput] = useState('')
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [originInput, setOriginInput] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'APIキー名は必須です'
+      newErrors.name = "APIキー名は必須です";
     }
 
     if (formData.allowed_origins.length === 0) {
-      newErrors.origins = 'セキュリティのため、少なくとも1つのオリジンを指定してください'
+      newErrors.origins = "セキュリティのため、少なくとも1つのオリジンを指定してください";
     }
 
     if (formData.rate_limit < 10) {
-      newErrors.rate_limit = 'レート制限は最低10回/時以上に設定してください'
+      newErrors.rate_limit = "レート制限は最低10回/時以上に設定してください";
     }
 
     if (formData.expires_at) {
-      const expiryDate = new Date(formData.expires_at)
-      const maxDate = new Date()
-      maxDate.setFullYear(maxDate.getFullYear() + 2)
-      
+      const expiryDate = new Date(formData.expires_at);
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() + 2);
+
       if (expiryDate < new Date()) {
-        newErrors.expires_at = '有効期限は将来の日付を指定してください'
+        newErrors.expires_at = "有効期限は将来の日付を指定してください";
       } else if (expiryDate > maxDate) {
-        newErrors.expires_at = '有効期限は最大2年後までです'
+        newErrors.expires_at = "有効期限は最大2年後までです";
       }
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!validateForm()) {
-      return
+      return;
     }
 
-    await onSubmit(formData)
-  }
+    await onSubmit(formData);
+  };
 
   const addOrigin = () => {
-    const origin = originInput.trim()
+    const origin = originInput.trim();
     if (origin && !formData.allowed_origins.includes(origin)) {
       if (isValidOrigin(origin)) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          allowed_origins: [...prev.allowed_origins, origin]
-        }))
-        setOriginInput('')
-        setErrors(prev => ({ ...prev, origins: '' }))
+          allowed_origins: [...prev.allowed_origins, origin],
+        }));
+        setOriginInput("");
+        setErrors((prev) => ({ ...prev, origins: "" }));
       } else {
-        setErrors(prev => ({ ...prev, originInput: '有効なURLを入力してください（例: https://example.com）' }))
+        setErrors((prev) => ({
+          ...prev,
+          originInput: "有効なURLを入力してください（例: https://example.com）",
+        }));
       }
     }
-  }
+  };
 
   const removeOrigin = (origin: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      allowed_origins: prev.allowed_origins.filter(o => o !== origin)
-    }))
-  }
+      allowed_origins: prev.allowed_origins.filter((o) => o !== origin),
+    }));
+  };
 
   const isValidOrigin = (url: string) => {
     try {
-      const parsed = new URL(url)
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
     } catch {
-      return false
+      return false;
     }
-  }
+  };
 
   const togglePermission = (permission: keyof typeof formData.permissions) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       permissions: {
         ...prev.permissions,
-        [permission]: !prev.permissions[permission]
-      }
-    }))
-  }
+        [permission]: !prev.permissions[permission],
+      },
+    }));
+  };
 
   // デフォルトで1年後の日付を計算
-  const getDefaultExpiry = () => {
-    const date = new Date()
-    date.setFullYear(date.getFullYear() + 1)
-    return date.toISOString().split('T')[0]
-  }
+  // const getDefaultExpiry = () => {
+  //   const date = new Date()
+  //   date.setFullYear(date.getFullYear() + 1)
+  //   return date.toISOString().split('T')[0]
+  // }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -172,7 +165,7 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
             外部サイトでTimeBidウィジェットを使用するためのAPIキーを作成します
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           {/* 基本情報 */}
           <div className="space-y-4">
@@ -180,7 +173,7 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
               <Info className="h-4 w-4" />
               基本情報
             </h3>
-            
+
             <div className="space-y-2">
               <Label htmlFor="name">
                 APIキー名 <span className="text-red-500">*</span>
@@ -189,12 +182,10 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
                 id="name"
                 placeholder="例: 本番環境用、開発環境用"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className={errors.name ? 'border-red-500' : ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                className={errors.name ? "border-red-500" : ""}
               />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
             </div>
 
             <div className="space-y-2">
@@ -203,7 +194,7 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
                 id="description"
                 placeholder="このAPIキーの用途や注意事項を記載"
                 value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                 rows={3}
               />
             </div>
@@ -217,7 +208,7 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
               <Shield className="h-4 w-4" />
               権限設定
             </h3>
-            
+
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
@@ -225,7 +216,7 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
                     type="checkbox"
                     id="read"
                     checked={formData.permissions.read}
-                    onChange={() => togglePermission('read')}
+                    onChange={() => togglePermission("read")}
                     className="h-4 w-4"
                   />
                   <Label htmlFor="read" className="cursor-pointer">
@@ -243,7 +234,7 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
                     type="checkbox"
                     id="write"
                     checked={formData.permissions.write}
-                    onChange={() => togglePermission('write')}
+                    onChange={() => togglePermission("write")}
                     className="h-4 w-4"
                   />
                   <Label htmlFor="write" className="cursor-pointer">
@@ -261,7 +252,7 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
                     type="checkbox"
                     id="delete"
                     checked={formData.permissions.delete}
-                    onChange={() => togglePermission('delete')}
+                    onChange={() => togglePermission("delete")}
                     className="h-4 w-4"
                   />
                   <Label htmlFor="delete" className="cursor-pointer">
@@ -283,27 +274,23 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
               <Globe className="h-4 w-4" />
               許可するオリジン <span className="text-red-500">*</span>
             </h3>
-            
+
             <div className="flex gap-2">
               <Input
                 placeholder="https://example.com"
                 value={originInput}
                 onChange={(e) => setOriginInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addOrigin())}
-                className={errors.originInput ? 'border-red-500' : ''}
+                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addOrigin())}
+                className={errors.originInput ? "border-red-500" : ""}
               />
               <Button type="button" onClick={addOrigin} size="icon">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
-            {errors.originInput && (
-              <p className="text-sm text-red-500">{errors.originInput}</p>
-            )}
-            
-            {errors.origins && (
-              <p className="text-sm text-red-500">{errors.origins}</p>
-            )}
+
+            {errors.originInput && <p className="text-sm text-red-500">{errors.originInput}</p>}
+
+            {errors.origins && <p className="text-sm text-red-500">{errors.origins}</p>}
 
             {formData.allowed_origins.length > 0 && (
               <div className="space-y-2">
@@ -343,12 +330,14 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
               <Gauge className="h-4 w-4" />
               レート制限
             </h3>
-            
+
             <div className="space-y-2">
               <Label htmlFor="rate_limit">1時間あたりのリクエスト数</Label>
               <Select
                 value={formData.rate_limit.toString()}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, rate_limit: parseInt(value) }))}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, rate_limit: parseInt(value) }))
+                }
               >
                 <SelectTrigger id="rate_limit">
                   <SelectValue />
@@ -360,9 +349,7 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
                   <SelectItem value="10000">10,000回/時（エンタープライズ）</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.rate_limit && (
-                <p className="text-sm text-red-500">{errors.rate_limit}</p>
-              )}
+              {errors.rate_limit && <p className="text-sm text-red-500">{errors.rate_limit}</p>}
             </div>
           </div>
 
@@ -374,25 +361,23 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
               <Clock className="h-4 w-4" />
               有効期限
             </h3>
-            
+
             <div className="space-y-2">
               <Label htmlFor="expires_at">有効期限日（オプション）</Label>
               <Input
                 id="expires_at"
                 type="date"
                 value={formData.expires_at}
-                onChange={(e) => setFormData(prev => ({ ...prev, expires_at: e.target.value }))}
-                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setFormData((prev) => ({ ...prev, expires_at: e.target.value }))}
+                min={new Date().toISOString().split("T")[0]}
                 max={(() => {
-                  const date = new Date()
-                  date.setFullYear(date.getFullYear() + 2)
-                  return date.toISOString().split('T')[0]
+                  const date = new Date();
+                  date.setFullYear(date.getFullYear() + 2);
+                  return date.toISOString().split("T")[0];
                 })()}
-                className={errors.expires_at ? 'border-red-500' : ''}
+                className={errors.expires_at ? "border-red-500" : ""}
               />
-              {errors.expires_at && (
-                <p className="text-sm text-red-500">{errors.expires_at}</p>
-              )}
+              {errors.expires_at && <p className="text-sm text-red-500">{errors.expires_at}</p>}
               <p className="text-sm text-muted-foreground">
                 未設定の場合、デフォルトで1年後に設定されます
               </p>
@@ -401,19 +386,10 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
         </CardContent>
 
         <CardFooter className="flex justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
             キャンセル
           </Button>
-          <Button
-            type="submit"
-            disabled={isLoading || !formData.name.trim()}
-            className="gap-2"
-          >
+          <Button type="submit" disabled={isLoading || !formData.name.trim()} className="gap-2">
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -429,5 +405,5 @@ export function ApiKeyCreateForm({ onSubmit, onCancel, isLoading = false }: ApiK
         </CardFooter>
       </Card>
     </form>
-  )
+  );
 }

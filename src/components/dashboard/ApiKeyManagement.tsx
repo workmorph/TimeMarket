@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,9 +8,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -26,31 +26,31 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { 
-  MoreHorizontal, 
-  Copy, 
-  Trash2, 
-  Key, 
-  Clock, 
-  Globe, 
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  MoreHorizontal,
+  Copy,
+  Trash2,
+  Key,
+  Clock,
+  Globe,
   Shield,
   Check,
   AlertTriangle,
   Edit,
   Eye,
-  EyeOff
-} from 'lucide-react'
-import { ApiKey } from '@/models/ApiKey'
+  EyeOff,
+} from "lucide-react";
+import { ApiKey } from "@/models/ApiKey";
 
 interface ApiKeyManagementProps {
-  apiKeys: ApiKey[]
-  onCreateKey: () => void
-  onDeleteKey: (keyId: string) => void
-  onUpdateKey?: (keyId: string, updates: Partial<ApiKey>) => void
-  isLoading?: boolean
+  apiKeys: ApiKey[];
+  onCreateKey: () => void;
+  onDeleteKey: (keyId: string) => void;
+  onUpdateKey?: (keyId: string, updates: Partial<ApiKey>) => void;
+  isLoading?: boolean;
 }
 
 export function ApiKeyManagement({
@@ -58,85 +58,87 @@ export function ApiKeyManagement({
   onCreateKey,
   onDeleteKey,
   onUpdateKey,
-  isLoading = false
+  isLoading = false,
 }: ApiKeyManagementProps) {
-  const [selectedKey, setSelectedKey] = useState<ApiKey | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [copied, setCopied] = useState<string | null>(null)
-  const [showKeys, setShowKeys] = useState<Set<string>>(new Set())
+  const [selectedKey, setSelectedKey] = useState<ApiKey | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [showKeys, setShowKeys] = useState<Set<string>>(new Set());
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return '未設定'
-    return new Date(dateString).toLocaleString('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+    if (!dateString) return "未設定";
+    return new Date(dateString).toLocaleString("ja-JP", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const maskApiKey = (key: string, show: boolean = false) => {
-    if (show) return key
-    const prefix = key.substring(0, 10)
-    const suffix = key.substring(key.length - 4)
-    return `${prefix}...${suffix}`
-  }
+    if (show) return key;
+    const prefix = key.substring(0, 10);
+    const suffix = key.substring(key.length - 4);
+    return `${prefix}...${suffix}`;
+  };
 
   const copyToClipboard = async (text: string, keyId: string) => {
-    await navigator.clipboard.writeText(text)
-    setCopied(keyId)
-    setTimeout(() => setCopied(null), 2000)
-  }
+    await navigator.clipboard.writeText(text);
+    setCopied(keyId);
+    setTimeout(() => setCopied(null), 2000);
+  };
 
   const toggleKeyVisibility = (keyId: string) => {
-    setShowKeys(prev => {
-      const newSet = new Set(prev)
+    setShowKeys((prev) => {
+      const newSet = new Set(prev);
       if (newSet.has(keyId)) {
-        newSet.delete(keyId)
+        newSet.delete(keyId);
       } else {
-        newSet.add(keyId)
+        newSet.add(keyId);
       }
-      return newSet
-    })
-  }
+      return newSet;
+    });
+  };
 
   const handleDeleteClick = (key: ApiKey) => {
-    setSelectedKey(key)
-    setShowDeleteDialog(true)
-  }
+    setSelectedKey(key);
+    setShowDeleteDialog(true);
+  };
 
   const handleEditClick = (key: ApiKey) => {
-    setSelectedKey(key)
-    setShowEditDialog(true)
-  }
+    setSelectedKey(key);
+    setShowEditDialog(true);
+  };
 
   const confirmDelete = () => {
     if (selectedKey) {
-      onDeleteKey(selectedKey.id)
-      setShowDeleteDialog(false)
-      setSelectedKey(null)
+      onDeleteKey(selectedKey.id);
+      setShowDeleteDialog(false);
+      setSelectedKey(null);
     }
-  }
+  };
 
-  const getPermissionsDisplay = (permissions: any) => {
+  const getPermissionsDisplay = (
+    permissions: { read?: boolean; write?: boolean; delete?: boolean } | null | undefined
+  ): string => {
     if (!permissions || Object.keys(permissions).length === 0) {
-      return '標準権限'
+      return "標準権限";
     }
-    const perms = []
-    if (permissions.read) perms.push('読み取り')
-    if (permissions.write) perms.push('書き込み')
-    if (permissions.delete) perms.push('削除')
-    return perms.length > 0 ? perms.join(', ') : '標準権限'
-  }
+    const perms = [];
+    if (permissions.read) perms.push("読み取り");
+    if (permissions.write) perms.push("書き込み");
+    if (permissions.delete) perms.push("削除");
+    return perms.length > 0 ? perms.join(", ") : "標準権限";
+  };
 
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -223,8 +225,8 @@ export function ApiKeyManagement({
                         <Globe className="h-3.5 w-3.5 text-muted-foreground" />
                         <span className="text-sm">
                           {key.allowed_origins && key.allowed_origins.length > 0
-                            ? key.allowed_origins.join(', ')
-                            : 'すべて許可'}
+                            ? key.allowed_origins.join(", ")
+                            : "すべて許可"}
                         </span>
                       </div>
                     </TableCell>
@@ -241,7 +243,7 @@ export function ApiKeyManagement({
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">
-                        {key.last_used_at ? formatDate(key.last_used_at) : '未使用'}
+                        {key.last_used_at ? formatDate(key.last_used_at) : "未使用"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -314,9 +316,7 @@ export function ApiKeyManagement({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>APIキーの編集</DialogTitle>
-              <DialogDescription>
-                APIキーの設定を変更します
-              </DialogDescription>
+              <DialogDescription>APIキーの設定を変更します</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -331,7 +331,7 @@ export function ApiKeyManagement({
                 <Label htmlFor="edit-origins">許可するオリジン</Label>
                 <Input
                   id="edit-origins"
-                  defaultValue={selectedKey?.allowed_origins?.join(', ')}
+                  defaultValue={selectedKey?.allowed_origins?.join(", ")}
                   placeholder="https://example.com, https://app.example.com"
                 />
               </div>
@@ -340,10 +340,12 @@ export function ApiKeyManagement({
               <Button variant="outline" onClick={() => setShowEditDialog(false)}>
                 キャンセル
               </Button>
-              <Button onClick={() => {
-                // TODO: 実装
-                setShowEditDialog(false)
-              }}>
+              <Button
+                onClick={() => {
+                  // TODO: 実装
+                  setShowEditDialog(false);
+                }}
+              >
                 保存
               </Button>
             </DialogFooter>
@@ -351,5 +353,5 @@ export function ApiKeyManagement({
         </Dialog>
       )}
     </>
-  )
+  );
 }
