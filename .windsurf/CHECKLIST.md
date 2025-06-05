@@ -3,31 +3,38 @@
 ## このファイルは作業開始前に必ず確認すること
 
 ### ✅ ステップ1: 引き継ぎ確認（5分）
-- [ ] `CLAUDE_SESSION_LOG.md` を読んで全体像把握
-- [ ] `CLAUDE_HANDOVER.md` で前回の状況確認
+
+- [ ] `docs/claude/CLAUDE_README.md`
+      を読んで完全理解（このファイル1つで引き継ぎ完了）
+- [ ] `docs/claude/session-log.md` で最新状況確認（必要に応じて）
 - [ ] `.windsurf/execution-log.md` で実行状況確認
 - [ ] `.windsurf/status-dashboard.md` でステータス確認
 
 ### ✅ ステップ2: ファイル構造確認（3分）
+
 ```bash
 # 必ず実行
 directory_tree /Users/kentanonaka/workmorph/time-bid/src
 ```
+
 - [ ] src/app の構造確認
 - [ ] src/components の構造確認
 - [ ] 変更対象ファイルの存在確認
 
 ### ✅ ステップ3: 実行タスク確認（2分）
+
 - [ ] `.windsurf/EXECUTE_NOW.md` の内容確認
 - [ ] 対象ファイルが存在することを確認
 - [ ] 依存関係の確認（import先が存在するか）
 
 ### ✅ ステップ4: 制約確認（2分）
+
 - [ ] `.windsurf/rules.md` の禁止事項確認
 - [ ] `.windsurf/HUMAN_APPROVAL_REQUIRED.md` 確認
 - [ ] 環境変数やスキーマ変更が含まれていないか
 
 ### ✅ ステップ5: 実行前の最終確認（1分）
+
 - [ ] `npm run build` が現在成功するか
 - [ ] TypeScriptエラーがないか
 - [ ] 実行により既存機能が壊れないか
@@ -37,11 +44,14 @@ directory_tree /Users/kentanonaka/workmorph/time-bid/src
 ## 🚨 よくある失敗パターン
 
 ### ❌ 避けるべきこと
+
 1. **ファイル確認なしの実装**
+
    - 存在しないファイルへの変更指示
    - ファイル内容の誤認識
 
 2. **依存関係の無視**
+
    - 存在しないコンポーネントのimport
    - 未インストールのライブラリ使用
 
@@ -51,13 +61,16 @@ directory_tree /Users/kentanonaka/workmorph/time-bid/src
    - 本番APIキーのハードコード
 
 ### ✅ 正しいアプローチ
+
 1. **常に確認から始める**
+
    ```bash
    cat [対象ファイル]  # 内容確認
    ls -la [対象ディレクトリ]  # 存在確認
    ```
 
 2. **小さく実装**
+
    - 1ファイルずつ変更
    - 都度ビルド確認
    - エラーが出たら即停止
@@ -71,12 +84,14 @@ directory_tree /Users/kentanonaka/workmorph/time-bid/src
 ## 📝 実行後チェックリスト
 
 ### 各タスク完了後
+
 - [ ] `npm run build` 成功
 - [ ] `npm run type-check` エラーなし
 - [ ] 既存機能の動作確認
 - [ ] `execution-log.md` に記録
 
 ### 全タスク完了後
+
 - [ ] `status-dashboard.md` 更新
 - [ ] 未解決課題の記録
 - [ ] 次のタスクの準備
@@ -87,10 +102,12 @@ directory_tree /Users/kentanonaka/workmorph/time-bid/src
 ## 💡 Tips
 
 1. **迷ったら確認**
+
    - ファイルの存在や内容に迷ったら必ず確認
    - 制約に抵触しそうなら実行前に停止
 
 2. **ログは詳細に**
+
    - 何を変更したか具体的に記録
    - エラーメッセージは省略せず記録
 
