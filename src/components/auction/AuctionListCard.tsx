@@ -44,7 +44,7 @@ export function AuctionListCard({ auction }: AuctionListCardProps) {
   const isEnding = !isEnded && timeLeft.total < 30 * 60 * 1000 // 30分以内
   
   return (
-    <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
+    <Card className={`h-full flex flex-col hover:shadow-lg hover:-translate-y-1 transition-all duration-300 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${isEnding && !isEnded ? 'animate-pulse border-red-300 shadow-red-100' : ''}`}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-2">
@@ -97,7 +97,10 @@ export function AuctionListCard({ auction }: AuctionListCardProps) {
       
       <CardFooter className="pt-0">
         <Link href={`/auctions/${auction.id}`} className="w-full">
-          <Button variant="outline" className="w-full">
+          <Button 
+            variant="outline" 
+            className={`w-full transition-all duration-300 hover:scale-105 hover:shadow-md motion-reduce:hover:scale-100 motion-reduce:transition-none ${isEnding && !isEnded ? 'animate-pulse bg-red-50 hover:bg-red-100 border-red-300' : ''}`}
+          >
             詳細を見る
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
