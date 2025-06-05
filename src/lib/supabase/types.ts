@@ -2,6 +2,228 @@
 export interface Database {
   public: {
     Tables: {
+      tenants: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          logo_url: string | null;
+          primary_color: string;
+          secondary_color: string;
+          created_at: string;
+          updated_at: string;
+          is_active: boolean;
+          subscription_plan: string;
+          subscription_status: string;
+          trial_ends_at: string | null;
+          owner_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          logo_url?: string | null;
+          primary_color?: string;
+          secondary_color?: string;
+          created_at?: string;
+          updated_at?: string;
+          is_active?: boolean;
+          subscription_plan?: string;
+          subscription_status?: string;
+          trial_ends_at?: string | null;
+          owner_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          logo_url?: string | null;
+          primary_color?: string;
+          secondary_color?: string;
+          created_at?: string;
+          updated_at?: string;
+          is_active?: boolean;
+          subscription_plan?: string;
+          subscription_status?: string;
+          trial_ends_at?: string | null;
+          owner_id?: string | null;
+        };
+      };
+      tenant_configs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          config_key: string;
+          config_value: Record<string, unknown>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          config_key: string;
+          config_value?: Record<string, unknown>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          config_key?: string;
+          config_value?: Record<string, unknown>;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      tenant_experts: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          user_id: string;
+          role: string;
+          is_public: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          user_id: string;
+          role?: string;
+          is_public?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          user_id?: string;
+          role?: string;
+          is_public?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      tenant_api_keys: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          api_key: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+          expires_at: string | null;
+          last_used_at: string | null;
+          allowed_origins: string[] | null;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          api_key: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          expires_at?: string | null;
+          last_used_at?: string | null;
+          allowed_origins?: string[] | null;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          name?: string;
+          api_key?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          expires_at?: string | null;
+          last_used_at?: string | null;
+          allowed_origins?: string[] | null;
+        };
+      };
+      tenant_usage: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          month: string;
+          api_calls: number;
+          widget_views: number;
+          auctions_created: number;
+          bids_placed: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          month: string;
+          api_calls?: number;
+          widget_views?: number;
+          auctions_created?: number;
+          bids_placed?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          month?: string;
+          api_calls?: number;
+          widget_views?: number;
+          auctions_created?: number;
+          bids_placed?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      tenant_invoices: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          invoice_number: string;
+          amount: number;
+          currency: string;
+          status: string;
+          billing_period_start: string;
+          billing_period_end: string;
+          due_date: string;
+          paid_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          invoice_number: string;
+          amount: number;
+          currency?: string;
+          status?: string;
+          billing_period_start: string;
+          billing_period_end: string;
+          due_date: string;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          invoice_number?: string;
+          amount?: number;
+          currency?: string;
+          status?: string;
+          billing_period_start?: string;
+          billing_period_end?: string;
+          due_date?: string;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       profiles: {
         Row: {
           id: string;
@@ -230,3 +452,30 @@ export type ApiKeyUpdate = Database["public"]["Tables"]["api_keys"]["Update"];
 export type ActivityLog = Database["public"]["Tables"]["activity_logs"]["Row"];
 export type ActivityLogInsert = Database["public"]["Tables"]["activity_logs"]["Insert"];
 export type ActivityLogUpdate = Database["public"]["Tables"]["activity_logs"]["Update"];
+
+// テナント関連の型エイリアス
+export type Tenant = Database["public"]["Tables"]["tenants"]["Row"];
+export type TenantInsert = Database["public"]["Tables"]["tenants"]["Insert"];
+export type TenantUpdate = Database["public"]["Tables"]["tenants"]["Update"];
+
+export type TenantConfig = Database["public"]["Tables"]["tenant_configs"]["Row"];
+export type TenantConfigInsert = Database["public"]["Tables"]["tenant_configs"]["Insert"];
+export type TenantConfigUpdate = Database["public"]["Tables"]["tenant_configs"]["Update"];
+
+export type TenantExpert = Database["public"]["Tables"]["tenant_experts"]["Row"] & {
+  profile?: Profile;
+};
+export type TenantExpertInsert = Database["public"]["Tables"]["tenant_experts"]["Insert"];
+export type TenantExpertUpdate = Database["public"]["Tables"]["tenant_experts"]["Update"];
+
+export type TenantApiKey = Database["public"]["Tables"]["tenant_api_keys"]["Row"];
+export type TenantApiKeyInsert = Database["public"]["Tables"]["tenant_api_keys"]["Insert"];
+export type TenantApiKeyUpdate = Database["public"]["Tables"]["tenant_api_keys"]["Update"];
+
+export type TenantUsage = Database["public"]["Tables"]["tenant_usage"]["Row"];
+export type TenantUsageInsert = Database["public"]["Tables"]["tenant_usage"]["Insert"];
+export type TenantUsageUpdate = Database["public"]["Tables"]["tenant_usage"]["Update"];
+
+export type TenantInvoice = Database["public"]["Tables"]["tenant_invoices"]["Row"];
+export type TenantInvoiceInsert = Database["public"]["Tables"]["tenant_invoices"]["Insert"];
+export type TenantInvoiceUpdate = Database["public"]["Tables"]["tenant_invoices"]["Update"];
