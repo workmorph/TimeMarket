@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { BidForm } from "./bid-form";
 import Link from "next/link";
+import { DetailedPriceDisplay } from './PriceDisplayVariants';
+import { usePriceABTest } from '@/hooks/use-price-ab-test';
 
 // Mock data (後でAPI/propsに置換)
 const mockAuction = {
@@ -112,6 +114,7 @@ export function AuctionDetail() {
   const [auction] = useState(mockAuction);
   const [bids] = useState(mockBids);
   const [timeLeft, setTimeLeft] = useState(getTimeRemaining(auction.ends_at));
+  const { variant, recordClick, recordBid } = usePriceABTest();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -171,17 +174,14 @@ export function AuctionDetail() {
 
                 {/* 現在価格・入札状況 */}
                 <div className="flex items-center justify-between bg-blue-50 p-4 rounded-lg mt-4">
-                  <div>
-                    <div className="text-sm text-muted-foreground">現在価格</div>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(auction.current_highest_bid)}
-                    </div>
-                    <div className="flex items-center text-sm text-green-600">
-                      <TrendingUp className="w-4 h-4 mr-1" />
-                      開始価格から +
-                      {formatCurrency(auction.current_highest_bid - auction.starting_price)}
-                    </div>
-                  </div>
+                  <DetailedPriceDisplay
+                    variant={variant}
+                    currentPrice={auction.current_highest_bid}
+                    startingPrice={auction.starting_price}
+                    bidCount={auction.bid_count}
+                    timeRemaining={timeLeft}
+                    onClick={recordClick}
+                  />
                   <div className="text-right">
                     <div className="flex items-center text-lg font-semibold">
                       <Users className="w-5 h-5 mr-2" />

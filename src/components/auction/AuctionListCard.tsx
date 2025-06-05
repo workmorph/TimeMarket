@@ -8,6 +8,8 @@ import { Users, Star, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { formatCurrency, formatDateTime, getTimeRemaining } from '@/lib/utils'
 import { useState, useEffect } from 'react'
+import { PriceDisplay } from './PriceDisplayVariants'
+import { usePriceABTest } from '@/hooks/use-price-ab-test'
 
 export interface AuctionListCardProps {
   auction: {
@@ -31,6 +33,7 @@ export interface AuctionListCardProps {
 
 export function AuctionListCard({ auction }: AuctionListCardProps) {
   const [timeLeft, setTimeLeft] = useState(getTimeRemaining(auction.ends_at))
+  const { variant, recordClick } = usePriceABTest()
   
   useEffect(() => {
     const timer = setInterval(() => {
@@ -79,9 +82,12 @@ export function AuctionListCard({ auction }: AuctionListCardProps) {
         <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
           <div>
             <div className="text-xs text-muted-foreground">現在価格</div>
-            <div className="text-xl font-bold text-blue-600">
-              {formatCurrency(auction.current_highest_bid)}
-            </div>
+            <PriceDisplay
+              variant={variant}
+              currentPrice={auction.current_highest_bid}
+              startingPrice={auction.starting_price}
+              onClick={recordClick}
+            />
           </div>
           <div className="text-right">
             <div className="flex items-center text-sm">
