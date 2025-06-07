@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function Header() {
   return (
@@ -11,11 +11,17 @@ export function Header() {
               TimeBid
             </Link>
           </div>
-          <nav className="hidden md:flex items-center space-x-4">
-            <Link href="/auctions" className="text-gray-700 hover:text-blue-600">
-              オークション一覧
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link
+              href="/auctions"
+              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+            >
+              オークション
             </Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600">
+            <Link
+              href="/about"
+              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+            >
               サービス紹介
             </Link>
           </nav>
@@ -30,5 +36,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  )
-} 
+  );
+}
